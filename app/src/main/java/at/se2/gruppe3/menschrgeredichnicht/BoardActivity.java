@@ -28,7 +28,6 @@ public class BoardActivity extends Activity {
         BoardView.setImageResource(R.drawable.board);
 
 
-
         BoardView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
