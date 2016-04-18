@@ -1,0 +1,23 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/table"
+    tools:context="at.se2.gruppe3.menschrgeredichnicht.BoardActivity">
+    <RelativeLayout
+        android:id="@+id/tableView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <at.se2.gruppe3.menschrgeredichnicht.BoardView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/boardView"
+            android:scaleType="fitCenter"
+            android:adjustViewBounds="true"
+            android:background="#000000"
+            android:layout_centerVertical="true"
+            android:layout_centerInParent="true"/>
+    </RelativeLayout>
+
+
+</FrameLayout>
