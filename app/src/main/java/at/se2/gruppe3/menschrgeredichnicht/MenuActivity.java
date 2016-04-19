@@ -84,7 +84,7 @@ public class MenuActivity extends Activity implements View.OnClickListener {
         switch(view.getId()){
             case R.id.btnNewGame:
                 Intent newGameScreen = new Intent(getApplicationContext(),
-                        Spielbrett.class);
+                        BoardActivity.class);
                 startActivity(newGameScreen);
 
                 break;
