@@ -95,7 +95,6 @@ public class MenuActivity extends Activity implements View.OnClickListener {
                 Intent newHilfeScreen = new Intent(getApplicationContext(),
                         Hilfe.class);
                 startActivity(newHilfeScreen);
-
                 break;
 
         }
