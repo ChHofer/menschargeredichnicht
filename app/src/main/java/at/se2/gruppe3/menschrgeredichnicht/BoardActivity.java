@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.os.Vibrator;
 import android.util.Log;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
@@ -36,6 +37,9 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
         setContentView(R.layout.activity_board);
 
 
+
+
+
         Intent intent = new Intent(BoardActivity.this, ShakeService.class);
         startService(intent);
 
@@ -52,7 +56,9 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
             @Override
             public void onShake(int count) {
                 Toast.makeText(getApplicationContext(), "Würfelzahl = "+wurfel.wurfelAction(), Toast.LENGTH_SHORT).show();
-
+                Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+                // Vibrate for 500 milliseconds
+                v.vibrate(300);
             }
         });
 

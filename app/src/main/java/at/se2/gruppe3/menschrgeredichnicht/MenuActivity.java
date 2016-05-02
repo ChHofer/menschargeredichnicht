@@ -110,7 +110,7 @@ public class MenuActivity extends Activity implements View.OnClickListener{
 
                 break;
             case R.id.btnJoinGame:
-                Toast.makeText(getApplicationContext(), "shake", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "Not yet implemented :D", Toast.LENGTH_SHORT).show();
                 break;
             case R.id.btnHelp:
                 Intent newHilfeScreen = new Intent(getApplicationContext(),
