@@ -9,6 +9,8 @@ public class Kegel {
     private int Position;
     private int Player;
 
+    public Kegel(){}
+
     public Kegel(int Player,int State,int Position){
         this.Player = Player;
         this.State = State;
