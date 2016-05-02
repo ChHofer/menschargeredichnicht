@@ -1,9 +1,14 @@
 package at.se2.gruppe3.menschrgeredichnicht;
 
 import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
+import android.hardware.Sensor;
+import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 
 public class BoardActivity extends Activity implements BoardView.OnFeldClickedListener{
 
@@ -17,10 +22,41 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
 
     Kegel KegelHighlighted;
 
+
+    // The following are used for the shake detection
+    private SensorManager mSensorManager;
+    private Sensor mAccelerometer;
+    private ShakeDetector mShakeDetector;
+
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_board);
+
+
+        Intent intent = new Intent(BoardActivity.this, ShakeService.class);
+        startService(intent);
+
+        // ShakeDetector initialization
+        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        mAccelerometer = mSensorManager
+                .getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        mShakeDetector = new ShakeDetector();
+        mShakeDetector.setOnShakeListener(new ShakeDetector.OnShakeListener() {
+
+            Wurfel wurfel = new Wurfel();
+
+
+            @Override
+            public void onShake(int count) {
+                Toast.makeText(getApplicationContext(), "Würfelzahl = "+wurfel.wurfelAction(), Toast.LENGTH_SHORT).show();
+
+            }
+        });
+
+
 
         StartFelder = new Kegel[4][4];
         ZielFelder = new Kegel[4][4];
@@ -36,6 +72,22 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
         startGame();
         moveDone();
 
+
+
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Add the following line to register the Session Manager Listener onResume
+        mSensorManager.registerListener(mShakeDetector, mAccelerometer, SensorManager.SENSOR_DELAY_UI);
+    }
+
+    @Override
+    public void onPause() {
+        // Add the following line to unregister the Sensor Manager onPause
+        mSensorManager.unregisterListener(mShakeDetector);
+        super.onPause();
     }
 
     public void startGame(){

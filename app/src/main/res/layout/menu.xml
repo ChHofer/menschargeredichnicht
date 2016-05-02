@@ -48,4 +48,5 @@
         style="@android:style/TextAppearance.Holo.Large"
         android:textColor="@color/abc_primary_text_material_dark"
         android:textStyle="bold" />
+
 </RelativeLayout>
