@@ -109,11 +109,11 @@ public class BoardView extends ImageView{
             }else if(x==5 && y>0 && y<5){ // Player 2 Ziel Feld
                 boardCoordZiel[1][index[5]] = new Coordinate(xC,yC);
                 index[5]++;
-            }else if(y==5 && x>5 && x<10){ // Player 3 Ziel Feld
-                boardCoordZiel[2][3-index[6]] = new Coordinate(xC,yC);
+            }else if(y==5 && x>5 && x<10){ // Player 4 Ziel Feld
+                boardCoordZiel[3][3-index[6]] = new Coordinate(xC,yC);
                 index[6]++;
-            }else if(x==5 && y>5 && y<10){ // Player 4 Ziel Feld
-                boardCoordZiel[3][3-index[7]] = new Coordinate(xC,yC);
+            }else if(x==5 && y>5 && y<10){ // Player 3 Ziel Feld
+                boardCoordZiel[2][3-index[7]] = new Coordinate(xC,yC);
                 index[7]++;
             }
             // Haupt Felder
