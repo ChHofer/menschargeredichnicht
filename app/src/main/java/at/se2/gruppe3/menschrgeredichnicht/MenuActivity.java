@@ -1,21 +1,35 @@
 package at.se2.gruppe3.menschrgeredichnicht;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.DialogFragment;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorListener;
+import android.hardware.SensorManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+import android.text.InputType;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
 
 import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.common.api.GoogleApiClient;
 
+import static android.hardware.SensorManager.*;
+
 /**
  * Created by oliver on 15.04.16.
  */
-public class MenuActivity extends Activity implements View.OnClickListener {
+public class MenuActivity extends Activity implements View.OnClickListener{
 
 
     /**
@@ -25,6 +39,9 @@ public class MenuActivity extends Activity implements View.OnClickListener {
     private GoogleApiClient client;
 
     Button btnNewGame, btnJoinGame, btnHelp;
+    Spieler spieler;
+    String textname;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,6 +52,11 @@ public class MenuActivity extends Activity implements View.OnClickListener {
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
+
+
+
+
+
     }
 
     @Override
@@ -77,6 +99,8 @@ public class MenuActivity extends Activity implements View.OnClickListener {
         client.disconnect();
     }
 
+
+
     @Override
     public void onClick(View view) {
 
@@ -89,7 +113,38 @@ public class MenuActivity extends Activity implements View.OnClickListener {
 
                 break;
             case R.id.btnJoinGame:
-                this.finish();
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                final AlertDialog alertDialog = new AlertDialog.Builder(MenuActivity.this).create();
+                alertDialog.setTitle("Spiel Beitreten");
+                alertDialog.setMessage("Gib deinen Namen ein:");
+                // Set up the input
+                final EditText input = new EditText(this);
+                // Specify the type of input expected; this, for example, sets the input as a password, and will mask the text
+                input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_CLASS_TEXT);
+                alertDialog.setView(input);
+
+
+
+                alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                textname = input.getText().toString();
+
+                                spieler= new Spieler(textname);
+                                Toast.makeText(getApplicationContext(), spieler.getName() + " ist beigetreten", Toast.LENGTH_LONG).show();
+                                Intent newGameScreen = new Intent(getApplicationContext(),BoardActivity.class);
+                                startActivity(newGameScreen);
+                            }
+                        });
+
+                if(!alertDialog.isShowing()){
+                    alertDialog.show();
+
+                }
+
+
+
                 break;
             case R.id.btnHelp:
                 Intent newHilfeScreen = new Intent(getApplicationContext(),
@@ -109,5 +164,18 @@ public class MenuActivity extends Activity implements View.OnClickListener {
         btnHelp.setOnClickListener(this);
 
     }
+
+
+
+    /**
+     * SHAKE LISTENER TESTS FROM HERE
+     * not working very well :D
+     * still too sensitive
+     */
+
+    /**TODO
+     * improve Shake Listener
+     */
+
 
 }

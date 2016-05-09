@@ -4,19 +4,29 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.AttributeSet;
-import android.util.Log;
+import android.view.MotionEvent;
 import android.widget.ImageView;
 
 /**
  * Created by chris on 17.04.2016.
  */
-public class BoardView extends ImageView {
+public class BoardView extends ImageView{
 
     private Coordinate[][] boardCoordStart;
     private Coordinate[][] boardCoordZiel;
     private Coordinate[] boardCoordHaupt;
+
+    Kegel KegelHighlighted;
+
+    private int kegelWidth;
+    private int kegelHeight;
+
+    OnFeldClickedListener mListener;
+
+    Canvas c;
 
     private int[] index;
 
@@ -27,15 +37,23 @@ public class BoardView extends ImageView {
     private Kegel[][] ZielFelder;
     private Kegel[] HauptFelder;
 
+    int radius,offset;
+
+    Bitmap KegelRot;
+    Bitmap KegelGrün;
+    Bitmap KegelGelb;
+    Bitmap KegelBlau;
+
     public BoardView(Context context) {
         super(context);
+        init();
     }
     public BoardView(Context context, AttributeSet attrs){
         super(context, attrs);
+        init();
     }
 
-    private void initBoard(){
-        getDisplaySize();
+    public void init(){
         index = new int[9];
         boardCoordStart = new Coordinate[4][4];
         boardCoordZiel = new Coordinate[4][4];
@@ -44,6 +62,21 @@ public class BoardView extends ImageView {
         StartFelder = new Kegel[4][4];
         ZielFelder = new Kegel[4][4];
         HauptFelder = new Kegel[40];
+    }
+
+    private void initBoard(){
+        getDisplaySize();
+
+        radius = (int)(boardWidth*0.037);
+        offset = (int)(boardWidth*0.00648);
+
+        kegelWidth=(int)(boardWidth*0.06);
+        kegelHeight=(int)(boardHeight*0.083);
+
+        KegelRot = Bitmap.createScaledBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.game_piece_red), kegelWidth, kegelHeight, false);
+        KegelGrün = Bitmap.createScaledBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.game_piece_green), kegelWidth, kegelHeight, false);
+        KegelGelb = Bitmap.createScaledBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.game_piece_yellow), kegelWidth, kegelHeight, false);
+        KegelBlau = Bitmap.createScaledBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.game_piece_blue), kegelWidth, kegelHeight, false);
 
         int y,x;
         int yC,xC;
@@ -58,7 +91,6 @@ public class BoardView extends ImageView {
             // Start Felder
             if(x<2 && y<2){ // Player 1 Start Feld
                 boardCoordStart[0][index[0]] = new Coordinate(xC,yC);
-                Log.w("Logged","boardCoordStart["+0+"]["+index[0]+"] = new Coordinate("+xC+","+yC+");");
                 index[0]++;
             }else if(x>8 && y<2){ // Player 2 Start Feld
                 boardCoordStart[1][index[1]] = new Coordinate(xC,yC);
@@ -73,16 +105,15 @@ public class BoardView extends ImageView {
             // Ziel Felder
             if(y==5 && x>0 && x<5){ // Player 1 Ziel Feld
                 boardCoordZiel[0][index[4]] = new Coordinate(xC,yC);
-                Log.w("Logged","boardCoordZiel["+0+"]["+index[0]+"] = new Coordinate("+xC+","+yC+");");
                 index[4]++;
             }else if(x==5 && y>0 && y<5){ // Player 2 Ziel Feld
                 boardCoordZiel[1][index[5]] = new Coordinate(xC,yC);
                 index[5]++;
-            }else if(y==5 && x>5 && x<10){ // Player 3 Ziel Feld
-                boardCoordZiel[2][3-index[6]] = new Coordinate(xC,yC);
+            }else if(y==5 && x>5 && x<10){ // Player 4 Ziel Feld
+                boardCoordZiel[3][3-index[6]] = new Coordinate(xC,yC);
                 index[6]++;
-            }else if(x==5 && y>5 && y<10){ // Player 4 Ziel Feld
-                boardCoordZiel[3][3-index[7]] = new Coordinate(xC,yC);
+            }else if(x==5 && y>5 && y<10){ // Player 3 Ziel Feld
+                boardCoordZiel[2][3-index[7]] = new Coordinate(xC,yC);
                 index[7]++;
             }
             // Haupt Felder
@@ -139,42 +170,48 @@ public class BoardView extends ImageView {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
+        c = canvas;
 
         if(!boardInitialized){
             initBoard();
         }
 
-        Paint p = new Paint();
-        p.setAntiAlias(true);
-        p.setFilterBitmap(true);
+        if(KegelHighlighted != null){
+            Paint p = new Paint();
+            p.setColor(Color.BLACK);
+            p.setStrokeWidth((int)(boardWidth*0.074));
+            Coordinate cord;
+            int x;
+            int y;
 
-        int w=65;
-        int h=90;
-        Bitmap KegelRot = BitmapFactory.decodeResource(getResources(), R.drawable.game_piece_red);
-        Bitmap KegelGrün = BitmapFactory.decodeResource(getResources(), R.drawable.game_piece_green);
-        Bitmap KegelGelb = BitmapFactory.decodeResource(getResources(), R.drawable.game_piece_yellow);
-        Bitmap KegelBlau = BitmapFactory.decodeResource(getResources(), R.drawable.game_piece_blue);
-        KegelRot = Bitmap.createScaledBitmap(KegelRot, w, h, false);
-        KegelGrün = Bitmap.createScaledBitmap(KegelGrün, w, h, false);
-        KegelGelb = Bitmap.createScaledBitmap(KegelGelb, w, h, false);
-        KegelBlau = Bitmap.createScaledBitmap(KegelBlau, w, h, false);
+            switch(KegelHighlighted.getState()){
+                case 0:
+                    cord = boardCoordStart[KegelHighlighted.getPlayer()][KegelHighlighted.getPosition()];
+                    x = cord.getX();
+                    y = cord.getY();
+                    c.drawCircle(x,y,radius,p);
+                    break;
+                case 1:
+                    cord = boardCoordHaupt[KegelHighlighted.getPosition()];
+                    x = cord.getX();
+                    y = cord.getY();
+                    c.drawCircle(x,y,radius,p);
+                    break;
+                case 2:
+                    cord = boardCoordZiel[KegelHighlighted.getPlayer()][KegelHighlighted.getPosition()];
+                    x = cord.getX();
+                    y = cord.getY();
+                    c.drawCircle(x,y,radius,p);
+                    break;
+            }
+        }
 
-        Log.w("","onDraw!");
 
         // Kegel auf Start Feldern zeichnen
         for(int i=0;i< boardCoordStart.length;i++){
             for(int j=0;j<boardCoordStart[i].length;j++){
-                if(boardCoordStart[i][j]!=null && StartFelder[i][j]==null) {
-                    if(i==0){
-                        canvas.drawBitmap(KegelRot, boardCoordStart[i][j].getX()-(w/2), boardCoordStart[i][j].getY()-(h/2)-15, p);
-                    }else if(i==1){
-                        canvas.drawBitmap(KegelBlau, boardCoordStart[i][j].getX()-(w/2), boardCoordStart[i][j].getY()-(h/2)-15, p);
-                    }else if(i==2){
-                        canvas.drawBitmap(KegelGelb, boardCoordStart[i][j].getX()-(w/2), boardCoordStart[i][j].getY()-(h/2)-15, p);
-                    }else if(i==3){
-                        canvas.drawBitmap(KegelGrün, boardCoordStart[i][j].getX()-(w/2), boardCoordStart[i][j].getY()-(h/2)-15, p);
-                    }
-
+                if(boardCoordStart[i][j]!=null && StartFelder[i][j]!=null) {
+                    drawKegel(StartFelder[i][j], boardCoordStart[i][j].getX()-(kegelWidth/2), boardCoordStart[i][j].getY()-(kegelHeight/2)-offset);
                 }
             }
         }
@@ -182,17 +219,102 @@ public class BoardView extends ImageView {
         for(int i=0;i< boardCoordZiel.length;i++){
             for(int j=0;j<boardCoordZiel[i].length;j++){
                 if(boardCoordZiel[i][j]!=null && ZielFelder[i][j]!=null) {
-                    canvas.drawBitmap(KegelRot, boardCoordZiel[i][j].getX()-(w/2), boardCoordZiel[i][j].getY()-(h/2)-7, p);
+                    drawKegel(ZielFelder[i][j], boardCoordZiel[i][j].getX()-(kegelWidth/2), boardCoordZiel[i][j].getY()-(kegelHeight/2)-offset);
                 }
             }
         }
         // Kegel auf Haupt Feldern zeichnen
         for(int i=0;i<boardCoordHaupt.length;i++){
             if(boardCoordHaupt[i]!=null && HauptFelder[i]!=null) {
-                canvas.drawBitmap(KegelRot, boardCoordHaupt[i].getX()-(w/2), boardCoordHaupt[i].getY()-(h/2)-7, p);
+                drawKegel(HauptFelder[i], boardCoordHaupt[i].getX()-(kegelWidth/2), boardCoordHaupt[i].getY()-(kegelHeight/2)-offset);
             }
+        }
+    }
+
+    public void drawKegel(Kegel k,int x,int y){
+        Paint p = new Paint();
+        p.setAntiAlias(true);
+        p.setFilterBitmap(true);
+        p.setDither(true);
+
+        switch(k.getPlayer()){
+            case 0: c.drawBitmap(KegelRot, x, y, p);
+                break;
+            case 1: c.drawBitmap(KegelBlau, x, y, p);
+                break;
+            case 2: c.drawBitmap(KegelGelb, x, y, p);
+                break;
+            case 3: c.drawBitmap(KegelGrün, x, y, p);
+                break;
         }
 
     }
+
+    public void setBoardState(Kegel[][] StartFelder,Kegel[][] ZielFelder,Kegel[] HauptFelder){
+        System.arraycopy(StartFelder,0,this.StartFelder,0,StartFelder.length);
+        System.arraycopy(ZielFelder,0,this.ZielFelder,0,ZielFelder.length);
+        System.arraycopy(HauptFelder,0,this.HauptFelder,0,HauptFelder.length);
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+                // do something
+                break;
+            case MotionEvent.ACTION_MOVE:
+                // do something
+                break;
+            case MotionEvent.ACTION_UP:
+                int x = (int)event.getX();
+                int y = (int)event.getY();
+
+                int margin = (int)(boardWidth*0.0416);
+
+                for(int i=0;i< boardCoordStart.length;i++){
+                    for(int j=0;j<boardCoordStart[i].length;j++){
+                        if(x<=boardCoordStart[i][j].getX()+margin && x>=boardCoordStart[i][j].getX()-margin &&
+                                y<=boardCoordStart[i][j].getY()+margin && y>=boardCoordStart[i][j].getY()-margin){
+                                mListener.OnFeldClicked(0,i,j);
+                        }
+                    }
+                }
+                for(int i=0;i<boardCoordHaupt.length;i++){
+                    if(x<=boardCoordHaupt[i].getX()+margin && x>=boardCoordHaupt[i].getX()-margin &&
+                            y<=boardCoordHaupt[i].getY()+margin && y>=boardCoordHaupt[i].getY()-margin){
+                            mListener.OnFeldClicked(1,0,i);
+                    }
+                }
+                for(int i=0;i< boardCoordZiel.length;i++){
+                    for(int j=0;j<boardCoordZiel[i].length;j++){
+                        if(x<=boardCoordZiel[i][j].getX()+margin && x>=boardCoordZiel[i][j].getX()-margin &&
+                                y<=boardCoordZiel[i][j].getY()+margin && y>=boardCoordZiel[i][j].getY()-margin) {
+                            mListener.OnFeldClicked(2,i,j);
+                        }
+                    }
+                }
+                break;
+        }
+        return true;
+    }
+
+    public void highlightKegel(Kegel k){
+     this.KegelHighlighted = k;
+    }
+
+    public void resetHighlight(){
+        this.KegelHighlighted = null;
+    }
+
+    public interface OnFeldClickedListener {
+        public void OnFeldClicked(int state,int player,int position);
+    }
+
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        mListener = (OnFeldClickedListener) this.getContext();
+    }
+
 
 }
