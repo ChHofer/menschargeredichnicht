@@ -52,4 +52,15 @@
         android:textColor="@color/abc_primary_text_material_dark"
         android:textStyle="bold" />
 
+    <Button
+        style="@android:style/Widget.DeviceDefault.Button"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:text="Connect"
+        android:id="@+id/btnConnect"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginLeft="0dp"
+        android:layout_below="@+id/btnHelp"
+        android:layout_centerHorizontal="true" />
+
 </RelativeLayout>

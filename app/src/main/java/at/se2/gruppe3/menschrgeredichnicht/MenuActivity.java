@@ -38,7 +38,7 @@ public class MenuActivity extends Activity implements View.OnClickListener{
      */
     private GoogleApiClient client;
 
-    Button btnNewGame, btnJoinGame, btnHelp;
+    Button btnNewGame, btnJoinGame, btnHelp, btnConnect;
     Spieler spieler;
     String textname;
 
@@ -151,6 +151,12 @@ public class MenuActivity extends Activity implements View.OnClickListener{
                         Hilfe.class);
                 startActivity(newHilfeScreen);
                 break;
+            case R.id.btnConnect:
+                Intent newConnectScreen = new Intent(getApplicationContext(),
+                        Connect.class);
+                startActivity(newConnectScreen);
+
+                break;
 
         }
     }
@@ -162,7 +168,8 @@ public class MenuActivity extends Activity implements View.OnClickListener{
         btnJoinGame.setOnClickListener(this);
         btnHelp = (Button) findViewById(R.id.btnHelp);
         btnHelp.setOnClickListener(this);
-
+        btnConnect = (Button) findViewById(R.id.btnConnect);
+        btnConnect.setOnClickListener(this);
     }
 
 
