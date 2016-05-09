@@ -14,8 +14,10 @@ import android.hardware.SensorManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.text.InputType;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import com.google.android.gms.appindexing.Action;
@@ -37,7 +39,8 @@ public class MenuActivity extends Activity implements View.OnClickListener{
     private GoogleApiClient client;
 
     Button btnNewGame, btnJoinGame, btnHelp;
-
+    Spieler spieler;
+    String textname;
 
 
     @Override
@@ -110,7 +113,38 @@ public class MenuActivity extends Activity implements View.OnClickListener{
 
                 break;
             case R.id.btnJoinGame:
-                Toast.makeText(getApplicationContext(), "Not yet implemented :D", Toast.LENGTH_SHORT).show();
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                final AlertDialog alertDialog = new AlertDialog.Builder(MenuActivity.this).create();
+                alertDialog.setTitle("Spiel Beitreten");
+                alertDialog.setMessage("Gib deinen Namen ein:");
+                // Set up the input
+                final EditText input = new EditText(this);
+                // Specify the type of input expected; this, for example, sets the input as a password, and will mask the text
+                input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_CLASS_TEXT);
+                alertDialog.setView(input);
+
+
+
+                alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                textname = input.getText().toString();
+
+                                spieler= new Spieler(textname);
+                                Toast.makeText(getApplicationContext(), spieler.getName() + " ist beigetreten", Toast.LENGTH_LONG).show();
+                                Intent newGameScreen = new Intent(getApplicationContext(),BoardActivity.class);
+                                startActivity(newGameScreen);
+                            }
+                        });
+
+                if(!alertDialog.isShowing()){
+                    alertDialog.show();
+
+                }
+
+
+
                 break;
             case R.id.btnHelp:
                 Intent newHilfeScreen = new Intent(getApplicationContext(),
