@@ -130,7 +130,9 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
                 break;
             case 2:
                 if(KegelHighlighted!=null){
-                    moveKegel(KegelHighlighted,state,position);
+                    if(KegelHighlighted.getPlayer() == player) {
+                        moveKegel(KegelHighlighted, state, position);
+                    }
                 }else{
                     KegelHighlighted = ZielFelder[player][position];
                     BView.highlightKegel(KegelHighlighted);
@@ -153,6 +155,9 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
                 HauptFelder[position] = new Kegel(k.getPlayer(),state,position);
                 break;
             case 2:
+                if(ZielFelder[k.getPlayer()][position] != null){
+                    break;
+                }
                 ZielFelder[k.getPlayer()][position] = new Kegel(k.getPlayer(),state,position);
                 break;
         }
