@@ -1,6 +1,7 @@
 package at.se2.gruppe3.menschrgeredichnicht;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -18,8 +19,11 @@ import android.support.v7.widget.Toolbar;
 import android.text.InputType;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -27,6 +31,7 @@ import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.common.api.GoogleApiClient;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Connect extends Activity implements View.OnClickListener {
@@ -43,9 +48,13 @@ public class Connect extends Activity implements View.OnClickListener {
 
     private List peers;
 
+    private static final String TAG = "WiFi";
+
     WifiP2pDevice device;
     WifiP2pConfig config;
     WifiP2pDeviceList peerList;
+
+    private WifiP2pDevice targetDevice;
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
      * See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -125,7 +134,7 @@ public class Connect extends Activity implements View.OnClickListener {
             case R.id.btn_find:
 
                 testConnection();
-
+                testList();
                 break;
 
 
@@ -138,24 +147,65 @@ public class Connect extends Activity implements View.OnClickListener {
             @Override
             public void onSuccess() {
 
-                Toast.makeText(getApplicationContext(), "Discovered Peers", Toast.LENGTH_SHORT).show();
-                Log.d("WiFiDBC","Discovered Peers");
+                Toast.makeText(getApplicationContext(), "Peer Discovery ready", Toast.LENGTH_SHORT).show();
+                Log.d("WiFiDBC","Peer Discovery ready");
 
             }
 
             @Override
             public void onFailure(int reasonCode) {
 
-                Toast.makeText(getApplicationContext(), "No discovered Peers", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "Peer Discovery not ready", Toast.LENGTH_SHORT).show();
 
-                Log.d("WiFiDBC","No Peers");
+                Log.d("WiFiDBC","Peer Discovery not ready");
             }
+
 
 
         });
 
 
+
     }
+
+
+    public void testList(){
+
+        mManager.requestPeers(mChannel, new WifiP2pManager.PeerListListener() {
+            @Override
+            public void onPeersAvailable(WifiP2pDeviceList peers) {
+
+                displayPeers(peers);
+
+
+                if(peers.getDeviceList().isEmpty()){
+                    Log.d(TAG,"No devices found");
+                    Toast.makeText(getApplicationContext(), "No devices found", Toast.LENGTH_SHORT).show();
+                }else{
+                    //textOut.append(peers.getDeviceList().toString());
+                    for (WifiP2pDevice device : peers.getDeviceList())
+                    {
+                        // device.deviceName
+                        Log.d("DEVICE: ", device.deviceName);
+                    }
+                }
+
+
+
+
+
+            }
+        });
+
+    }
+
+    public void connectTo(){
+
+
+
+
+    }
+
 
 
 
@@ -181,6 +231,89 @@ public class Connect extends Activity implements View.OnClickListener {
         client.disconnect();
     }
 
+    public void displayPeers(final WifiP2pDeviceList peers)
+    {
+        //Dialog to show errors/status
+        final AlertDialog.Builder dialog = new AlertDialog.Builder(this);
+        dialog.setTitle("WiFi Direct File Transfer");
+
+        //Get list view
+        ListView peerView = (ListView) findViewById(R.id.peers_listview);
+
+        //Make array list
+        ArrayList<String> peersStringArrayList = new ArrayList<String>();
+
+        //Fill array list with strings of peer names
+        for(WifiP2pDevice wd : peers.getDeviceList())
+        {
+            peersStringArrayList.add(wd.deviceName);
+        }
+
+        //Set list view as clickable
+        peerView.setClickable(true);
+
+        //Make adapter to connect peer data to list view
+        ArrayAdapter arrayAdapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, peersStringArrayList.toArray());
+
+        //Show peer data in listview
+        peerView.setAdapter(arrayAdapter);
+
+
+        peerView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+            public void onItemClick(AdapterView<?> arg0, View view, int arg2,long arg3) {
+
+                //Get string from textview
+                TextView tv = (TextView) view;
+
+                WifiP2pDevice device = null;
+
+                //Search all known peers for matching name
+                for(WifiP2pDevice wd : peers.getDeviceList())
+                {
+                    if(wd.deviceName.equals(tv.getText()))
+                        device = wd;
+                }
+
+                if(device != null)
+                {
+                    //Connect to selected peer
+                    connectToPeer(device);
+
+                }
+                else
+                {
+                    dialog.setMessage("Failed");
+                    dialog.show();
+
+                }
+            }
+            // TODO Auto-generated method stub
+        });
+
+    }
+
+
+
+    public void connectToPeer(final WifiP2pDevice wifiPeer)
+    {
+        this.targetDevice = wifiPeer;
+
+        WifiP2pConfig config = new WifiP2pConfig();
+        config.deviceAddress = wifiPeer.deviceAddress;
+        mManager.connect(mChannel, config, new WifiP2pManager.ActionListener()  {
+            public void onSuccess() {
+
+                //setClientStatus("Connection to " + targetDevice.deviceName + " sucessful");
+            }
+
+            public void onFailure(int reason) {
+                //setClientStatus("Connection to " + targetDevice.deviceName + " failed");
+
+            }
+        });
+
+    }
 
 
 

@@ -58,12 +58,24 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
                 mManager.requestPeers(mChannel, new WifiP2pManager.PeerListListener() {
                     @Override
                     public void onPeersAvailable(WifiP2pDeviceList peers) {
-                        Log.d(TAG,String.format("PeerListListener: %d peers available, updating device list", peers.getDeviceList().size()));
 
+                        mActivity.displayPeers(peers);
+
+
+                        Log.d(TAG,String.format("PeerListListener: %d peers available, updating device list", peers.getDeviceList().size()));
+                        Log.d(TAG,"Devices: "+peers.getDeviceList().toString());
                         // DO WHATEVER YOU WANT HERE
                         // YOU CAN GET ACCESS TO ALL THE DEVICES YOU FOUND FROM peers OBJECT
 
+
+
+                        if (peers.toString().length() == 0) {
+                            Log.d(TAG, "No devices found");
+                            return;
+                        }
+
                     }
+
                 });
             }
 
@@ -74,6 +86,9 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
         }
 
     }
+
+
+
 
 
 
