@@ -22,7 +22,7 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
 
     private WifiP2pManager mManager;
     private WifiP2pManager.Channel mChannel;
-    private Connect mActivity;
+    public Connect mActivity;
     WifiP2pManager.PeerListListener myPeerListListener;
 
 

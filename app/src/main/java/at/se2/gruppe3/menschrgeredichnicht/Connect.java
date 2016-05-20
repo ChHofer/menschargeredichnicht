@@ -11,6 +11,7 @@ import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
 import android.net.wifi.p2p.WifiP2pManager;
+import android.net.wifi.p2p.WifiP2pManager.PeerListListener;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -46,7 +47,7 @@ public class Connect extends Activity implements View.OnClickListener {
 
     IntentFilter mIntentFilter;
 
-    private List peers;
+    private List peers = new ArrayList();
 
     private static final String TAG = "WiFi";
 
@@ -68,9 +69,6 @@ public class Connect extends Activity implements View.OnClickListener {
         setContentView(R.layout.connect);
         initialize();
 
-        mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
-        mChannel = mManager.initialize(this, getMainLooper(), null);
-        mReceiver = new WiFiDirectBroadcastReceiver(mManager, mChannel, this);
 
 
         mIntentFilter = new IntentFilter();
@@ -78,6 +76,11 @@ public class Connect extends Activity implements View.OnClickListener {
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
+
+        mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
+        mChannel = mManager.initialize(this, getMainLooper(), null);
+        mReceiver = new WiFiDirectBroadcastReceiver(mManager, mChannel, this);
+
 
 
         // ATTENTION: This was auto-generated to implement the App Indexing API.
@@ -110,19 +113,21 @@ public class Connect extends Activity implements View.OnClickListener {
     protected void onResume() {
         super.onResume();
         registerReceiver(mReceiver, mIntentFilter);
-
+        //mReceiver = new WiFiDirectBroadcastReceiver(mManager, mChannel, this);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         unregisterReceiver(mReceiver);
+
     }
+
 
     public void initialize() {
         btnFind = (Button) findViewById(R.id.btn_find);
         btnFind.setOnClickListener(this);
-        textOut = (TextView) findViewById(R.id.textView2);
+        //textOut = (TextView) findViewById(R.id.textView2);
     }
 
 
@@ -137,7 +142,6 @@ public class Connect extends Activity implements View.OnClickListener {
                 testList();
                 break;
 
-
         }
     }
 
@@ -147,7 +151,7 @@ public class Connect extends Activity implements View.OnClickListener {
             @Override
             public void onSuccess() {
 
-                Toast.makeText(getApplicationContext(), "Peer Discovery ready", Toast.LENGTH_SHORT).show();
+               // Toast.makeText(getApplicationContext(), "Peer Discovery ready", Toast.LENGTH_SHORT).show();
                 Log.d("WiFiDBC","Peer Discovery ready");
 
             }
@@ -155,7 +159,7 @@ public class Connect extends Activity implements View.OnClickListener {
             @Override
             public void onFailure(int reasonCode) {
 
-                Toast.makeText(getApplicationContext(), "Peer Discovery not ready", Toast.LENGTH_SHORT).show();
+              //  Toast.makeText(getApplicationContext(), "Peer Discovery not ready", Toast.LENGTH_SHORT).show();
 
                 Log.d("WiFiDBC","Peer Discovery not ready");
             }
@@ -198,18 +202,6 @@ public class Connect extends Activity implements View.OnClickListener {
         });
 
     }
-
-    public void connectTo(){
-
-
-
-
-    }
-
-
-
-
-
 
     @Override
     public void onStop() {
@@ -303,13 +295,13 @@ public class Connect extends Activity implements View.OnClickListener {
         config.deviceAddress = wifiPeer.deviceAddress;
         mManager.connect(mChannel, config, new WifiP2pManager.ActionListener()  {
             public void onSuccess() {
-
+                Toast.makeText(getApplicationContext(), "Connection succeeded", Toast.LENGTH_SHORT).show();
                 //setClientStatus("Connection to " + targetDevice.deviceName + " sucessful");
             }
 
             public void onFailure(int reason) {
                 //setClientStatus("Connection to " + targetDevice.deviceName + " failed");
-
+                Toast.makeText(getApplicationContext(), "Connection failed", Toast.LENGTH_SHORT).show();
             }
         });
 
