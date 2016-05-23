@@ -8,9 +8,13 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.net.wifi.p2p.WifiP2pDeviceList;
+import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.util.Log;
 
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.util.List;
 
 /**
@@ -24,6 +28,9 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
     private WifiP2pManager.Channel mChannel;
     public Connect mActivity;
     WifiP2pManager.PeerListListener myPeerListListener;
+
+
+    private static final int SERVER_PORT = 12345;
 
 
     public WiFiDirectBroadcastReceiver(WifiP2pManager manager, WifiP2pManager.Channel channel,
@@ -81,6 +88,39 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
 
         } else if (WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION.equals(action)) {
             // Respond to new connection or disconnections
+
+            mManager.requestConnectionInfo(mChannel, new WifiP2pManager.ConnectionInfoListener() {
+                @Override
+                public void onConnectionInfoAvailable(WifiP2pInfo p2pInfo) {
+
+                    if(p2pInfo.groupFormed){
+                        if (!p2pInfo.isGroupOwner) {
+                            // Joined group as client - connect to GO
+
+                            mActivity.startClientService(new InetSocketAddress(p2pInfo.groupOwnerAddress, SERVER_PORT));
+
+
+
+                        }else{
+
+
+                        /*
+
+                        try {
+                            mActivity.startServer();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
+                        */
+                        }
+                    }
+
+
+                }
+            });
+
+
         } else if (WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION.equals(action)) {
             // Respond to this device's wifi state changing
         }

@@ -2,6 +2,7 @@ package at.se2.gruppe3.menschrgeredichnicht;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.IntentService;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -10,9 +11,13 @@ import android.net.Uri;
 import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
+import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.net.wifi.p2p.WifiP2pManager.PeerListListener;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
+import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -32,12 +37,24 @@ import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.common.api.GoogleApiClient;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.PrintStream;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Connect extends Activity implements View.OnClickListener {
 
-    Button btnFind;
+    Button btnFind, btnStartServer;
     TextView textOut;
 
 
@@ -49,13 +66,30 @@ public class Connect extends Activity implements View.OnClickListener {
 
     private List peers = new ArrayList();
 
-    private static final String TAG = "WiFi";
+    public static final String TAG = "WiFi";
 
     WifiP2pDevice device;
     WifiP2pConfig config;
     WifiP2pDeviceList peerList;
 
     private WifiP2pDevice targetDevice;
+
+    private ArrayList<InetAddress> clients = new ArrayList<InetAddress>();
+
+
+    public WifiP2pInfo p2pInfo;
+
+    InetSocketAddress GOaddress = null;
+
+    private String SERVER_IP;
+
+
+    Thread serverThread = null;
+    private ServerSocket serverSocket;
+    Handler updateConversationHandler;
+    public static final int SERVERPORT = 6000;
+
+
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
      * See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -63,11 +97,21 @@ public class Connect extends Activity implements View.OnClickListener {
     private GoogleApiClient client;
 
 
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.connect);
         initialize();
+
+        //Connect.this.startService(new Intent(Connect.this, MyService.class));
+
+        //startService(new Intent(this, MyService.class));
+
+
+        updateConversationHandler = new Handler();
+
 
 
 
@@ -127,6 +171,8 @@ public class Connect extends Activity implements View.OnClickListener {
     public void initialize() {
         btnFind = (Button) findViewById(R.id.btn_find);
         btnFind.setOnClickListener(this);
+        btnStartServer = (Button) findViewById(R.id.btn_startServer);
+        btnStartServer.setOnClickListener(this);
         //textOut = (TextView) findViewById(R.id.textView2);
     }
 
@@ -141,6 +187,17 @@ public class Connect extends Activity implements View.OnClickListener {
                 testConnection();
                 testList();
                 break;
+
+            case R.id.btn_startServer:
+
+
+                this.serverThread = new Thread(new ServerThread());
+                this.serverThread.start();
+
+
+
+                break;
+
 
         }
     }
@@ -297,6 +354,12 @@ public class Connect extends Activity implements View.OnClickListener {
             public void onSuccess() {
                 Toast.makeText(getApplicationContext(), "Connection succeeded", Toast.LENGTH_SHORT).show();
                 //setClientStatus("Connection to " + targetDevice.deviceName + " sucessful");
+
+                Intent ClientScreen = new Intent(getApplicationContext(),
+                        Client.class);
+                startActivity(ClientScreen);
+
+
             }
 
             public void onFailure(int reason) {
@@ -310,4 +373,211 @@ public class Connect extends Activity implements View.OnClickListener {
 
 
 
+/*
+    public void startServer() throws IOException {
+        clients.clear();
+        ServerSocket serverSocket = new ServerSocket(SERVER_PORT);;
+
+        // Collect client ip's
+        while(true) {
+            Socket clientSocket = serverSocket.accept();
+            clients.add(clientSocket.getInetAddress());
+            clientSocket.close();
+        }
+    }
+*/
+
+
+
+
+    class ServerThread implements Runnable {
+
+        public void run() {
+            Socket socket = null;
+            try {
+                serverSocket = new ServerSocket(SERVERPORT);
+                Log.d(TAG,"ServerSocket started");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            while (!Thread.currentThread().isInterrupted()) {
+
+                try {
+
+                    socket = serverSocket.accept();
+
+                    CommunicationThread commThread = new CommunicationThread(socket);
+                    new Thread(commThread).start();
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    class CommunicationThread implements Runnable {
+
+        private Socket clientSocket;
+
+        private BufferedReader input;
+
+        public CommunicationThread(Socket clientSocket) {
+
+            this.clientSocket = clientSocket;
+
+            try {
+
+                this.input = new BufferedReader(new InputStreamReader(this.clientSocket.getInputStream()));
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        public void run() {
+
+            while (!Thread.currentThread().isInterrupted()) {
+
+                try {
+
+                    String read = input.readLine();
+
+                    updateConversationHandler.post(new updateUIThread(read));
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+    }
+
+    class updateUIThread implements Runnable {
+        private String msg;
+
+        public updateUIThread(String str) {
+            this.msg = str;
+        }
+
+        @Override
+        public void run() {
+            Log.d(TAG,"Client says:"+msg);
+            //text.setText(text.getText().toString()+"Client Says: "+ msg + "\n");
+        }
+    }
+
+    public void startClientService(InetSocketAddress address){
+        this.GOaddress = address;
+
+        new Thread(new ClientThread()).start();
+
+    }
+
+    //CLIENT THREAD FROM HERE:
+
+    private Socket socketClient;
+
+
+
+
+    class ClientThread implements Runnable {
+
+        @Override
+        public void run() {
+
+            try {
+                InetAddress serverAddr = GOaddress.getAddress();
+
+                socketClient = new Socket(serverAddr, SERVERPORT);
+                Log.d(TAG,"Socket connected");
+
+            } catch (UnknownHostException e1) {
+                e1.printStackTrace();
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
+
+        }
+
+    }
+
+
+
+
+
+//TESTING SHIT FROM HERE
+/*
+
+    public static class MyService extends IntentService {
+        public MyService() {
+            super("MyService");
+        }
+        @Override
+        protected void onHandleIntent(Intent intent) {
+            Log.d(Connect.TAG, "onHandleIntent");
+            final int port = 12345;
+            ServerSocket listener = null;
+            try {
+                listener = new ServerSocket(port);
+                Log.d(Connect.TAG, String.format("listening on port = %d", port));
+                while (true) {
+                    Log.d(Connect.TAG, "waiting for client");
+                    Socket socket = listener.accept();
+                    Log.d(Connect.TAG, String.format("client connected from: %s", socket.getRemoteSocketAddress().toString()));
+                    BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                    PrintStream out = new PrintStream(socket.getOutputStream());
+                    for (String inputLine; (inputLine = in.readLine()) != null;) {
+                        Log.d(Connect.TAG, "received");
+                        Log.d(Connect.TAG, inputLine);
+                        StringBuilder outputStringBuilder = new StringBuilder("");
+                        char inputLineChars[] = inputLine.toCharArray();
+                        for (char c : inputLineChars)
+                            outputStringBuilder.append(Character.toChars(c + 1));
+                        out.println(outputStringBuilder);
+                    }
+                }
+            } catch(IOException e) {
+                Log.d(Connect.TAG, e.toString());
+            }
+        }
+    }
+
+
+    public class ClientService extends IntentService {
+        public ClientService() {
+            super("ClientService");
+        }
+        @Override
+        protected void onHandleIntent(Intent intent) {
+            Log.d(Connect.TAG, "onHandleIntent");
+
+
+            try {
+
+                // Joined group as client - connect to GO
+                Socket socket = new Socket();
+                try{
+                    socket.connect(GOaddress);
+
+                }catch(java.io.IOException e){
+                    Log.d(TAG,e.toString());
+                }
+
+
+
+            } catch(Exception e) {
+                Log.d(Connect.TAG, e.toString());
+            }
+        }
+    }
+
+
+
+    */
+
+
+
 }
+
+

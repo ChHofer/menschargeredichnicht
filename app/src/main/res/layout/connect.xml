@@ -13,10 +13,18 @@
         android:id="@+id/btn_find"
         android:layout_gravity="center_horizontal" />
 
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Start Server"
+        android:id="@+id/btn_startServer"
+        android:layout_gravity="center_horizontal" />
+
     <ListView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/peers_listview"
-        android:choiceMode="singleChoice" />
+        android:choiceMode="singleChoice"
+        android:background="#d2d2d2" />
 
 </LinearLayout>
