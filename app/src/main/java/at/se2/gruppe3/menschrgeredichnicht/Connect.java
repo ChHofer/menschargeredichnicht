@@ -38,12 +38,15 @@ import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.common.api.GoogleApiClient;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -54,13 +57,14 @@ import java.util.List;
 
 public class Connect extends Activity implements View.OnClickListener {
 
-    Button btnFind, btnStartServer;
+    Button btnFind, btnStartServer, btnSend;
     TextView textOut;
 
 
     WifiP2pManager mManager;
     WifiP2pManager.Channel mChannel;
     BroadcastReceiver mReceiver;
+    Client mClient;
 
     IntentFilter mIntentFilter;
 
@@ -82,6 +86,9 @@ public class Connect extends Activity implements View.OnClickListener {
     InetSocketAddress GOaddress = null;
 
     private String SERVER_IP;
+
+    public Socket socketClient;
+
 
 
     Thread serverThread = null;
@@ -135,6 +142,9 @@ public class Connect extends Activity implements View.OnClickListener {
     @Override
     protected void onStart() {
         super.onStart();
+
+
+
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         client.connect();
@@ -173,6 +183,8 @@ public class Connect extends Activity implements View.OnClickListener {
         btnFind.setOnClickListener(this);
         btnStartServer = (Button) findViewById(R.id.btn_startServer);
         btnStartServer.setOnClickListener(this);
+        btnSend = (Button) findViewById(R.id.btn_send);
+        btnSend.setOnClickListener(this);
         //textOut = (TextView) findViewById(R.id.textView2);
     }
 
@@ -195,6 +207,45 @@ public class Connect extends Activity implements View.OnClickListener {
                 this.serverThread.start();
 
 
+
+                break;
+            case R.id.btn_send:
+
+                try{
+
+                    if(socketClient==null){
+                        serverThread.sleep(1500);
+                        Log.d(TAG,"SocketClient=null, initiating new SocketClient");
+                        mManager.requestConnectionInfo(mChannel, new WifiP2pManager.ConnectionInfoListener() {
+
+
+
+                            @Override
+                            public void onConnectionInfoAvailable(WifiP2pInfo info) {
+                                if(p2pInfo.groupFormed){
+                                    if (!p2pInfo.isGroupOwner) {
+                                        // Joined group as client - connect to GO
+
+                                        startClientService(new InetSocketAddress(p2pInfo.groupOwnerAddress, SERVERPORT));
+                            }
+                        }
+                    }});}
+                        else{
+                        String str = "This is a test Message from the Client";
+                        PrintWriter out = new PrintWriter(new BufferedWriter(
+                                new OutputStreamWriter(socketClient.getOutputStream())),
+                                true);
+                        out.println(str);
+                    }
+
+
+                } catch (UnknownHostException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
 
                 break;
 
@@ -221,12 +272,7 @@ public class Connect extends Activity implements View.OnClickListener {
                 Log.d("WiFiDBC","Peer Discovery not ready");
             }
 
-
-
         });
-
-
-
     }
 
 
@@ -342,8 +388,6 @@ public class Connect extends Activity implements View.OnClickListener {
 
     }
 
-
-
     public void connectToPeer(final WifiP2pDevice wifiPeer)
     {
         this.targetDevice = wifiPeer;
@@ -355,10 +399,11 @@ public class Connect extends Activity implements View.OnClickListener {
                 Toast.makeText(getApplicationContext(), "Connection succeeded", Toast.LENGTH_SHORT).show();
                 //setClientStatus("Connection to " + targetDevice.deviceName + " sucessful");
 
+                /*
                 Intent ClientScreen = new Intent(getApplicationContext(),
                         Client.class);
                 startActivity(ClientScreen);
-
+                */
 
             }
 
@@ -463,6 +508,7 @@ public class Connect extends Activity implements View.OnClickListener {
         @Override
         public void run() {
             Log.d(TAG,"Client says:"+msg);
+            Toast.makeText(getApplicationContext(), "Message from Client: "+msg, Toast.LENGTH_SHORT).show();
             //text.setText(text.getText().toString()+"Client Says: "+ msg + "\n");
         }
     }
@@ -476,8 +522,6 @@ public class Connect extends Activity implements View.OnClickListener {
 
     //CLIENT THREAD FROM HERE:
 
-    private Socket socketClient;
-
 
 
 
@@ -490,7 +534,10 @@ public class Connect extends Activity implements View.OnClickListener {
                 InetAddress serverAddr = GOaddress.getAddress();
 
                 socketClient = new Socket(serverAddr, SERVERPORT);
-                Log.d(TAG,"Socket connected");
+
+                Log.d(TAG,"Socket connected?"+socketClient.isConnected());
+
+
 
             } catch (UnknownHostException e1) {
                 e1.printStackTrace();
@@ -501,82 +548,6 @@ public class Connect extends Activity implements View.OnClickListener {
         }
 
     }
-
-
-
-
-
-//TESTING SHIT FROM HERE
-/*
-
-    public static class MyService extends IntentService {
-        public MyService() {
-            super("MyService");
-        }
-        @Override
-        protected void onHandleIntent(Intent intent) {
-            Log.d(Connect.TAG, "onHandleIntent");
-            final int port = 12345;
-            ServerSocket listener = null;
-            try {
-                listener = new ServerSocket(port);
-                Log.d(Connect.TAG, String.format("listening on port = %d", port));
-                while (true) {
-                    Log.d(Connect.TAG, "waiting for client");
-                    Socket socket = listener.accept();
-                    Log.d(Connect.TAG, String.format("client connected from: %s", socket.getRemoteSocketAddress().toString()));
-                    BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                    PrintStream out = new PrintStream(socket.getOutputStream());
-                    for (String inputLine; (inputLine = in.readLine()) != null;) {
-                        Log.d(Connect.TAG, "received");
-                        Log.d(Connect.TAG, inputLine);
-                        StringBuilder outputStringBuilder = new StringBuilder("");
-                        char inputLineChars[] = inputLine.toCharArray();
-                        for (char c : inputLineChars)
-                            outputStringBuilder.append(Character.toChars(c + 1));
-                        out.println(outputStringBuilder);
-                    }
-                }
-            } catch(IOException e) {
-                Log.d(Connect.TAG, e.toString());
-            }
-        }
-    }
-
-
-    public class ClientService extends IntentService {
-        public ClientService() {
-            super("ClientService");
-        }
-        @Override
-        protected void onHandleIntent(Intent intent) {
-            Log.d(Connect.TAG, "onHandleIntent");
-
-
-            try {
-
-                // Joined group as client - connect to GO
-                Socket socket = new Socket();
-                try{
-                    socket.connect(GOaddress);
-
-                }catch(java.io.IOException e){
-                    Log.d(TAG,e.toString());
-                }
-
-
-
-            } catch(Exception e) {
-                Log.d(Connect.TAG, e.toString());
-            }
-        }
-    }
-
-
-
-    */
-
-
 
 }
 

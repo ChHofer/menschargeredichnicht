@@ -30,7 +30,7 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
     WifiP2pManager.PeerListListener myPeerListListener;
 
 
-    private static final int SERVER_PORT = 12345;
+    private static final int SERVER_PORT = 6000;
 
 
     public WiFiDirectBroadcastReceiver(WifiP2pManager manager, WifiP2pManager.Channel channel,
@@ -98,6 +98,7 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
                             // Joined group as client - connect to GO
 
                             mActivity.startClientService(new InetSocketAddress(p2pInfo.groupOwnerAddress, SERVER_PORT));
+
 
 
 

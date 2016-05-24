@@ -6,19 +6,32 @@
     android:orientation="vertical">
 
 
-    <Button
+    <LinearLayout
+        android:orientation="horizontal"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Find devices"
-        android:id="@+id/btn_find"
-        android:layout_gravity="center_horizontal" />
+        android:layout_gravity="center_horizontal">
 
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Start Server"
-        android:id="@+id/btn_startServer"
-        android:layout_gravity="center_horizontal" />
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Find devices"
+            android:id="@+id/btn_find"
+            android:layout_gravity="center_horizontal" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Start Server"
+            android:id="@+id/btn_startServer"
+            android:layout_gravity="center_horizontal" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Send Msg"
+            android:id="@+id/btn_send" />
+    </LinearLayout>
 
     <ListView
         android:layout_width="match_parent"

@@ -20,15 +20,17 @@ public class Client extends Activity {
 
     private Socket socketClient;
 
-    private static final int SERVERPORT = 5000;
-    private static final String SERVER_IP = "10.0.2.2";
+    private static final int SERVERPORT = 6000;
+    private static final String SERVER_IP = "192.168.49.1";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.client);
 
-        new Thread(new ClientThread()).start();
+
+
+       // new Thread(new ClientThread()).start();
     }
 
     public void onClick(View view) {
@@ -40,6 +42,7 @@ public class Client extends Activity {
                 //https://examples.javacodegeeks.com/android/core/socket-core/android-socket-example/
 
                 case R.id.myButton:
+
 
                     EditText et = (EditText) findViewById(R.id.EditText01);
                     String str = et.getText().toString();
