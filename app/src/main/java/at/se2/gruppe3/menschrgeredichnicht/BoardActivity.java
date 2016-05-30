@@ -276,7 +276,7 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
                                 final String serviceId, String endpointName) {
         Log.w("lolol","Endpoint Found!");
         if(!isHost){
-            if(deviceListOld.get(0).getEndpointName().compareTo(endpointName)==0){
+            if((deviceListOld.get(0).getEndpointName()+"board").compareTo(endpointName)==0){
                 connectToEndpoint(endpointId,deviceId,serviceId);
             }
         }
@@ -404,7 +404,7 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
         // Positive values represent timeout in milliseconds
         long NO_TIMEOUT = 60000L;
 
-        Nearby.Connections.startAdvertising(mGoogleApiClient, sharedPref.getString("username","user"), appMetadata, NO_TIMEOUT,
+        Nearby.Connections.startAdvertising(mGoogleApiClient, sharedPref.getString("username","user")+"board", appMetadata, NO_TIMEOUT,
                 this).setResultCallback(new ResultCallback<Connections.StartAdvertisingResult>() {
             @Override
             public void onResult(Connections.StartAdvertisingResult result) {
