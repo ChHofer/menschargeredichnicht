@@ -480,4 +480,5 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
         }
         super.onPause();
     }
+
 }

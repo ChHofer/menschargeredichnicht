@@ -158,6 +158,14 @@ public class LobbyClient extends AppCompatActivity implements
                             Nearby.Connections.stopDiscovery(mGoogleApiClient, serviceId);
                             mRemoteHostEndpoint = endpointId;
 
+                            for(Device d : hostList){
+                                if(d.getEndpointId().compareTo(endpointId)==0){
+                                    hostList.clear();
+                                    hostList.add(d);
+                                }
+                            }
+
+
                             sendMessage("hi");
 
                             mIsConnected = true;
@@ -171,6 +179,12 @@ public class LobbyClient extends AppCompatActivity implements
 
     @Override
     public void onEndpointLost(String s) {
+        for(Device d : hostList){
+            if(d.getEndpointId().compareTo(s)==0){
+                hostList.remove(d);
+                refreshList();
+            }
+        }
         append("Endpoint lost");
     }
 
@@ -252,4 +266,5 @@ public class LobbyClient extends AppCompatActivity implements
         }
         super.onPause();
     }
+
 }
