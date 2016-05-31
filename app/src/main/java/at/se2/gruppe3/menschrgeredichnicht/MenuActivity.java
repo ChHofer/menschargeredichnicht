@@ -2,29 +2,17 @@ package at.se2.gruppe3.menschrgeredichnicht;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.DialogFragment;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
-import android.hardware.SensorListener;
-import android.hardware.SensorManager;
-import android.net.Uri;
+import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.text.InputType;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Toast;
 
-import com.google.android.gms.appindexing.Action;
-import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.common.api.GoogleApiClient;
-
-import static android.hardware.SensorManager.*;
 
 /**
  * Created by oliver on 15.04.16.
@@ -41,7 +29,9 @@ public class MenuActivity extends Activity implements View.OnClickListener{
     Button btnNewGame, btnJoinGame, btnHelp;
     Spieler spieler;
     String textname;
-
+    Intent Lobby;
+    Context context;
+    SharedPreferences sharedPref;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,109 +39,73 @@ public class MenuActivity extends Activity implements View.OnClickListener{
         setContentView(R.layout.menu);
         initialize();
 
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
+        context = getApplicationContext();
 
-
-
-
-
+        sharedPref = context.getSharedPreferences(
+                getString(R.string.preference_file_key), Context.MODE_PRIVATE);
+        if(sharedPref.getString("username","").compareTo("")==0){
+            askForName();
+        }
     }
 
     @Override
     public void onStart() {
         super.onStart();
-
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        client.connect();
-        Action viewAction = Action.newAction(
-                Action.TYPE_VIEW, // TODO: choose an action type.
-                "Menu Page", // TODO: Define a title for the content shown.
-                // TODO: If you have web page content that matches this app activity's content,
-                // make sure this auto-generated web page URL is correct.
-                // Otherwise, set the URL to null.
-                Uri.parse("http://host/path"),
-                // TODO: Make sure this auto-generated app URL is correct.
-                Uri.parse("android-app://at.se2.gruppe3.menschrgeredichnicht/http/host/path")
-        );
-        AppIndex.AppIndexApi.start(client, viewAction);
     }
 
     @Override
     public void onStop() {
         super.onStop();
-
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        Action viewAction = Action.newAction(
-                Action.TYPE_VIEW, // TODO: choose an action type.
-                "Menu Page", // TODO: Define a title for the content shown.
-                // TODO: If you have web page content that matches this app activity's content,
-                // make sure this auto-generated web page URL is correct.
-                // Otherwise, set the URL to null.
-                Uri.parse("http://host/path"),
-                // TODO: Make sure this auto-generated app URL is correct.
-                Uri.parse("android-app://at.se2.gruppe3.menschrgeredichnicht/http/host/path")
-        );
-        AppIndex.AppIndexApi.end(client, viewAction);
-        client.disconnect();
     }
 
 
 
     @Override
     public void onClick(View view) {
-
-
         switch(view.getId()){
             case R.id.btnNewGame:
-                Intent newGameScreen = new Intent(getApplicationContext(),
-                        BoardActivity.class);
-                startActivity(newGameScreen);
-
+                Lobby = new Intent(getApplicationContext(),LobbyHost.class);
+                startActivity(Lobby);
                 break;
             case R.id.btnJoinGame:
-
-                AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                final AlertDialog alertDialog = new AlertDialog.Builder(MenuActivity.this).create();
-                alertDialog.setTitle("Spiel Beitreten");
-                alertDialog.setMessage("Gib deinen Namen ein:");
-                // Set up the input
-                final EditText input = new EditText(this);
-                // Specify the type of input expected; this, for example, sets the input as a password, and will mask the text
-                input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_CLASS_TEXT);
-                alertDialog.setView(input);
-
-
-
-                alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                textname = input.getText().toString();
-
-                                spieler= new Spieler(textname);
-                                Toast.makeText(getApplicationContext(), spieler.getName() + " ist beigetreten", Toast.LENGTH_LONG).show();
-                                Intent newGameScreen = new Intent(getApplicationContext(),BoardActivity.class);
-                                startActivity(newGameScreen);
-                            }
-                        });
-
-                if(!alertDialog.isShowing()){
-                    alertDialog.show();
-
-                }
-
-
-
+                Lobby = new Intent(getApplicationContext(),LobbyClient.class);
+                startActivity(Lobby);
                 break;
             case R.id.btnHelp:
                 Intent newHilfeScreen = new Intent(getApplicationContext(),
                         Hilfe.class);
                 startActivity(newHilfeScreen);
                 break;
+        }
+    }
 
+    private void askForName(){
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        final AlertDialog alertDialog = new AlertDialog.Builder(MenuActivity.this).create();
+        alertDialog.setTitle("Username");
+        alertDialog.setMessage("Gib deinen Namen ein:");
+        // Set up the input
+        final EditText input = new EditText(this);
+        // Specify the type of input expected; this, for example, sets the input as a password, and will mask the text
+        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_CLASS_TEXT);
+        alertDialog.setView(input);
+
+        alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        textname = input.getText().toString();
+
+                        sharedPref.edit().putString("username",textname).commit();
+
+                        //spieler= new Spieler(textname);
+                        //Toast.makeText(getApplicationContext(), spieler.getName() + " ist beigetreten", Toast.LENGTH_LONG).show();
+                        //Intent newGameScreen = new Intent(getApplicationContext(),BoardActivity.class);
+                        //startActivity(newGameScreen);
+                    }
+                });
+
+        if(!alertDialog.isShowing()){
+            alertDialog.show();
         }
     }
 

@@ -1,4 +1,10 @@
 <resources>
     <string name="app_name">Mensch ärgere dich nicht</string>
     <string name="action_settings">Settings</string>
+
+    <string name="service_id">at.se2.gruppe3.menschrgeredichnicht</string>
+
+    <string name="google_app_id">191837619033</string>
+
+    <string name="preference_file_key">at.se2.gruppe3.menschrgeredichnicht.settings</string>
 </resources>
