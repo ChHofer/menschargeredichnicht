@@ -213,6 +213,7 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
             public void onAnimationEnd(Animation animation) {
                 int Zahl = wurfelAction();
                 setPicture(Zahl);
+                sendMessage("hab "+ Zahl + " gewürfelt");
 
             }
 
@@ -338,11 +339,12 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
         if(isHost){
             Nearby.Connections.sendReliableMessage( mGoogleApiClient,
                     deviceListID,
-                    ( Nearby.Connections.getLocalDeviceId( mGoogleApiClient ) + " says: " + message ).getBytes() );
+                    ( sharedPref.getString("username","user") + " says: " + message ).getBytes() );
+                    //( Nearby.Connections.getLocalDeviceId( mGoogleApiClient ) + " says: " + message ).getBytes() );
         }else{
             Nearby.Connections.sendReliableMessage( mGoogleApiClient,
                     mRemoteHostEndpoint,
-                    ( Nearby.Connections.getLocalDeviceId( mGoogleApiClient ) + " says: " + message ).getBytes() );
+                    ( sharedPref.getString("username","user") + " says: " + message ).getBytes() );
         }
     }
 
@@ -370,6 +372,8 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
             }
         }
     }
+
+
 
     public void connectToEndpoint(String endpointId, String deviceId, final String serviceId){
 
@@ -430,6 +434,10 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
                 valid=true;
             }
         }
+
+        Log.d("DEVICELIST",deviceListOld.toString());
+
+
 
         if(valid) {
             Log.w("lolol", "Accept Request");
