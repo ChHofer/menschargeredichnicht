@@ -134,6 +134,7 @@ public class LobbyHost extends AppCompatActivity implements
             @Override
             public void onResult(Connections.StartAdvertisingResult result) {
                 if (result.getStatus().isSuccess()) {
+                    Log.w("lolol","Advertising as:"+Nearby.Connections.getLocalEndpointId(mGoogleApiClient));
                     append("Advertising!");
                 } else {
                     int statusCode = result.getStatus().getStatusCode();
@@ -171,6 +172,11 @@ public class LobbyHost extends AppCompatActivity implements
     public void onConnectionRequest(final String remoteEndpointId, final String remoteDeviceId,
                                     final String remoteEndpointName, final byte[] payload) {
         append("Connection Request");
+
+        if (clientList.size() >= 3) {
+            Nearby.Connections.rejectConnectionRequest(mGoogleApiClient,remoteEndpointId);
+        }
+
             byte[] myPayload = null;
             // Automatically accept all requests
             Nearby.Connections.acceptConnectionRequest(mGoogleApiClient, remoteEndpointId,
@@ -235,6 +241,7 @@ public class LobbyHost extends AppCompatActivity implements
     @Override
     public void onResume() {
         super.onResume();
+        Log.w("lolol","onResume");
         connect();
     }
 

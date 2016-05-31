@@ -75,7 +75,7 @@ public class LobbyClient extends AppCompatActivity implements
         hostListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                connectToEndpoint(hostList.get(position).getEndpointId(),hostList.get(position).getEndpointName());
+                connectToEndpoint(hostList.get(position).getEndpointId());
             }
         });
 
@@ -145,7 +145,8 @@ public class LobbyClient extends AppCompatActivity implements
         refreshList();
     }
 
-    public void connectToEndpoint(String endpointId, final String serviceId){
+    public void connectToEndpoint(String endpointId){
+        Log.w("lolol","Connecting to:"+endpointId);
 
         byte[] payload = null;
         Nearby.Connections.sendConnectionRequest( mGoogleApiClient, sharedPref.getString("username","User"),
@@ -165,12 +166,12 @@ public class LobbyClient extends AppCompatActivity implements
                                 }
                             }
 
-
                             sendMessage("hi");
 
                             mIsConnected = true;
                         } else {
-                            append("Connection to " + endpointId + " failed" );
+                            append("Connection to " + endpointId + " failed");
+                            Log.w("lolol","Connection to " + endpointId + " failed: "+status.getStatusCode() +" message:"+status.getStatusMessage());
                             mIsConnected = false;
                         }
                     }
@@ -186,6 +187,7 @@ public class LobbyClient extends AppCompatActivity implements
             }
         }
         append("Endpoint lost");
+        startDiscovery();
     }
 
     @Override

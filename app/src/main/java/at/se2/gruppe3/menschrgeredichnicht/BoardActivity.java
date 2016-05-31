@@ -18,7 +18,6 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -373,8 +372,6 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
         }
     }
 
-
-
     public void connectToEndpoint(String endpointId, String deviceId, final String serviceId){
 
         byte[] payload = null;
@@ -388,7 +385,7 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
                             Nearby.Connections.stopDiscovery(mGoogleApiClient, serviceId);
                             mRemoteHostEndpoint = endpointId;
 
-                            progressDialog.dismiss();
+
                             //sendMessage("hi");
 
                             //mIsConnected = true;
@@ -410,6 +407,9 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
         String message=new String(bytes);
         Toast.makeText(this,message,Toast.LENGTH_SHORT).show();
 
+        if(message.contains("gamestart")){
+            progressDialog.dismiss();
+        }
         Log.w("lolol","Message Received:"+message);
     }
 
@@ -434,10 +434,6 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
                 valid=true;
             }
         }
-
-        Log.d("DEVICELIST",deviceListOld.toString());
-
-
 
         if(valid) {
             Log.w("lolol", "Accept Request");
@@ -506,9 +502,10 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
             @Override
             public void onResult(Connections.StartAdvertisingResult result) {
                 if (result.getStatus().isSuccess()) {
-                    Log.w("lolol","Advertising!");
+                    Log.w("lolol","Advertising as:"+Nearby.Connections.getLocalEndpointId(mGoogleApiClient));
                 } else {
                     int statusCode = result.getStatus().getStatusCode();
+
                     // Advertising failed - see statusCode for more details
                     Log.w("lolol","Advertising failed!:"+statusCode);
                 }
