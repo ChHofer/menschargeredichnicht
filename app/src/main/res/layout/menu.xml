@@ -3,53 +3,74 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@drawable/table">
+    android:background="@drawable/menubackground">
 
     <Button
         android:layout_width="match_parent"
-        android:layout_height="100dp"
-        android:text="Neues Spiel"
+        android:layout_height="50dp"
+        android:text="@string/Neues_Spiel"
         android:id="@+id/btnNewGame"
         android:layout_gravity="center_horizontal"
         android:layout_weight="1"
         android:layout_marginLeft="0dp"
         android:layout_below="@+id/textTitle"
-        android:layout_alignParentStart="true"
-        style="@android:style/Widget.DeviceDefault.Button" />
+        style="@android:style/Widget.DeviceDefault.Button"
+        android:layout_marginTop="165dp"
+        android:layout_alignEnd="@+id/btnJoinGame"
+        android:layout_alignStart="@+id/btnJoinGame"
+        android:backgroundTint="#8e0089"
+        android:background="#8d0088"
+        android:textColor="#fcc71e"
+        android:textSize="20dp"
+        android:textStyle="bold" />
 
     <Button
         android:layout_width="match_parent"
-        android:layout_height="100dp"
-        android:text="Spiel beitreten"
+        android:layout_height="50dp"
+        android:text="@string/Spiel_beitreten"
         android:id="@+id/btnJoinGame"
         android:layout_gravity="center_horizontal"
         android:layout_weight="1"
         android:layout_marginLeft="0dp"
         android:layout_below="@+id/btnNewGame"
-        android:layout_alignParentStart="true"
-        style="@android:style/Widget.DeviceDefault.Button" />
+        style="@android:style/Widget.DeviceDefault.Button"
+        android:layout_marginTop="10dp"
+        android:layout_alignEnd="@+id/textTitle"
+        android:layout_alignStart="@+id/textTitle"
+        android:background="#8d0088"
+        android:backgroundTint="#8d0088"
+        android:textColor="#fcc71e"
+        android:textSize="20dp"
+        android:textStyle="bold" />
 
     <Button
         android:layout_width="match_parent"
-        android:layout_height="100dp"
-        android:text="Hilfe"
+        android:layout_height="50dp"
+        android:text="@string/Hilfe"
         android:id="@+id/btnHelp"
         android:layout_gravity="center_horizontal"
         android:layout_marginLeft="0dp"
         android:layout_below="@+id/btnJoinGame"
-        android:layout_alignParentStart="true"
-        style="@android:style/Widget.DeviceDefault.Button" />
+        style="@android:style/Widget.DeviceDefault.Button"
+        android:layout_alignEnd="@+id/btnJoinGame"
+        android:layout_marginTop="10dp"
+        android:layout_alignStart="@+id/textTitle"
+        android:backgroundTint="#8d0088"
+        android:background="#8d0088"
+        android:textColor="#fcc71e"
+        android:textSize="20dp"
+        android:textStyle="bold" />
 
     <TextView
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="60dp"
         android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="Mensch ärgere dich nicht"
+        android:text="                                                "
         android:id="@+id/textTitle"
+        style="@android:style/TextAppearance.Holo.Large"
+        android:textStyle="bold"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
-        style="@android:style/TextAppearance.Holo.Large"
-        android:textColor="@color/abc_primary_text_material_dark"
-        android:textStyle="bold" />
+        android:layout_marginTop="0dp" />
 
 </RelativeLayout>

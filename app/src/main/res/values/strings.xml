@@ -1,4 +1,8 @@
 <resources>
     <string name="app_name">Mensch ärgere dich nicht</string>
     <string name="action_settings">Settings</string>
+    <string name="Neues_Spiel">Neues Spiel</string>
+    <string name="Spiel_beitreten">Spiel beitreten</string>
+    <string name="Hilfe">Hilfe</string>
+
 </resources>
