@@ -14,7 +14,11 @@ import android.os.Vibrator;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -28,6 +32,8 @@ import com.google.android.gms.nearby.connection.Connections;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
+import java.util.Timer;
 
 public class BoardActivity extends Activity implements BoardView.OnFeldClickedListener,
         GoogleApiClient.ConnectionCallbacks,
@@ -71,6 +77,16 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
 
     ProgressDialog progressDialog;
     String serviceId;
+
+    //DICE VARIABLES
+
+    Timer timer = new Timer();
+
+    Random rnd = new Random();
+    private ImageView diceimage;
+
+
+    //END DICE VARIABLES
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -116,9 +132,13 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
 
             @Override
             public void onShake(int count) {
-                Toast.makeText(getApplicationContext(), "Würfelzahl = "+wurfel.wurfelAction(), Toast.LENGTH_SHORT).show();
+                //Toast.makeText(getApplicationContext(), "Würfelzahl = "+wurfel.wurfelAction(), Toast.LENGTH_SHORT).show();
                 Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
                 // Vibrate for 500 milliseconds
+
+                startDiceAnimation();
+
+
                 v.vibrate(300);
             }
         });
@@ -140,7 +160,76 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
         progressDialog = new ProgressDialog(this);
         progressDialog.setMessage("Warte auf Mitspieler...");
         progressDialog.show();
+
+        //DICE INITIALIZATION
+
+        diceimage = (ImageView) findViewById(R.id.dice);
+
     }
+
+    public int wurfelAction() {
+
+        int zahl = rnd.nextInt(6) + 1;
+
+
+        return zahl;
+    }
+
+    public void setPicture(int rndZahl) {
+
+        switch (rndZahl) {
+            case 1:
+                diceimage.setImageResource(R.drawable.one);
+                break;
+            case 2:
+                diceimage.setImageResource(R.drawable.two);
+                break;
+            case 3:
+                diceimage.setImageResource(R.drawable.three);
+                break;
+            case 4:
+                diceimage.setImageResource(R.drawable.four);
+                break;
+            case 5:
+                diceimage.setImageResource(R.drawable.five);
+                break;
+            case 6:
+                diceimage.setImageResource(R.drawable.six);
+                break;
+        }
+    }
+
+    public void startDiceAnimation(){
+
+        Animation startrotateAnimation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.rotate_anim);
+        startrotateAnimation.setDuration(3000);
+        startrotateAnimation.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+                diceimage.setImageResource(R.drawable.dice3droll);
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                int Zahl = wurfelAction();
+                setPicture(Zahl);
+
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+
+            }
+        });
+
+        diceimage.startAnimation(startrotateAnimation);
+
+
+
+    }
+
+
+
 
     @Override
     public void onResume() {
