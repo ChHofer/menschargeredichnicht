@@ -131,9 +131,7 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
 
             @Override
             public void onShake(int count) {
-                //Toast.makeText(getApplicationContext(), "Würfelzahl = "+wurfel.wurfelAction(), Toast.LENGTH_SHORT).show();
                 Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-                // Vibrate for 500 milliseconds
 
                 startDiceAnimation();
 
@@ -409,6 +407,7 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
 
         if(message.contains("gamestart")){
             progressDialog.dismiss();
+            stopDiscoveryAdvertising();
         }
         Log.w("lolol","Message Received:"+message);
     }
@@ -451,6 +450,7 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
                         if (deviceListOld.size() == deviceList.size()) {
                             progressDialog.dismiss();
                             sendMessage("gamestart");
+                            stopDiscoveryAdvertising();
                         }
                     } else {
                         Log.w("lolol", "Failed to connect to: " + remoteEndpointName);
