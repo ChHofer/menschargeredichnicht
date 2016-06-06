@@ -140,9 +140,10 @@ public class LobbyClient extends AppCompatActivity implements
     public void onEndpointFound(String endpointId, String deviceId,
                                 final String serviceId, String endpointName) {
         append("Endpoint Found! \nName:"+endpointName);
-
-        hostList.add(new Device(endpointId,deviceId,endpointName));
-        refreshList();
+        if(!endpointName.contains("board")) {
+            hostList.add(new Device(endpointId, deviceId, endpointName));
+            refreshList();
+        }
     }
 
     public void connectToEndpoint(String endpointId){
