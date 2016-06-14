@@ -51,10 +51,14 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
 
     Kegel KegelHighlighted;
 
+    private int playerActive;
+
     private static int[] NETWORK_TYPES = {ConnectivityManager.TYPE_WIFI,
             ConnectivityManager.TYPE_ETHERNET };
 
     Boolean isHost;
+    private int myPosition;
+    Boolean isMyTurn = false;
 
     SharedPreferences sharedPref;
 
@@ -76,6 +80,10 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
 
     ProgressDialog progressDialog;
     String serviceId;
+    int counter;
+
+    private ArrayList<String> userDeviceList = new ArrayList<String>();
+
 
     //DICE VARIABLES
 
@@ -110,6 +118,7 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
 
         Log.w("lolol","Size:"+ connection.getDeviceList().size());
         isHost = connection.isHost();
+        Log.d("IS HOST?",isHost.toString());
 
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
@@ -249,39 +258,67 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
     public void moveDone(){
         BView.setBoardState(StartFelder,ZielFelder,HauptFelder);
         BView.invalidate();
-        Log.w("Logger","MoveDone");
+        //Log.w("Logger","MoveDone");
     }
 
     @Override
     public void OnFeldClicked(int state,int player,int position) {
-        sendMessage("Click!");
-        switch(state){
-            case 0:
-                if(StartFelder[player][position]!=null){
-                    KegelHighlighted = StartFelder[player][position];
-                    BView.highlightKegel(KegelHighlighted);
-                }
-                break;
-            case 1:
-                if(KegelHighlighted!=null){
-                    moveKegel(KegelHighlighted,state,position);
-                }else{
-                    KegelHighlighted = HauptFelder[position];
-                    BView.highlightKegel(KegelHighlighted);
-                }
-                break;
-            case 2:
-                if(KegelHighlighted!=null){
-                    if(KegelHighlighted.getPlayer() == player) {
-                        moveKegel(KegelHighlighted, state, position);
-                    }
-                }else{
-                    KegelHighlighted = ZielFelder[player][position];
-                    BView.highlightKegel(KegelHighlighted);
-                }
-                break;
+
+        if(!isMyTurn) {
+            return;
         }
-        moveDone();
+
+        if(KegelHighlighted==null){
+
+            switch(state){
+                case 0: if(StartFelder[player][position]!=null) if(StartFelder[player][position].getPlayer()!=myPosition) return;
+                    break;
+                case 1: if(HauptFelder[position]!=null) if(HauptFelder[position].getPlayer()!=myPosition) return;
+                    break;
+                case 2: if(ZielFelder[player][position]!=null) if(ZielFelder[player][position].getPlayer()!=myPosition) return;
+                    break;
+            }
+        }
+
+        sendMessage("$click#" + state + "," + player + "," + position);
+
+        OnFeldClickedMessage(state,player,position);
+    }
+
+
+    public void OnFeldClickedMessage(int state,int player,int position) {
+
+            switch(state){
+                case 0:
+                    if(StartFelder[player][position]!=null){
+                        KegelHighlighted = StartFelder[player][position];
+                        BView.highlightKegel(KegelHighlighted);
+                    }
+                    break;
+                case 1:
+                    if(KegelHighlighted!=null){
+                        moveKegel(KegelHighlighted,state,position);
+                    }else{
+                        KegelHighlighted = HauptFelder[position];
+                        BView.highlightKegel(KegelHighlighted);
+                    }
+                    break;
+                case 2:
+                    if(KegelHighlighted!=null){
+                        if(KegelHighlighted.getPlayer() == player) {
+                            moveKegel(KegelHighlighted, state, position);
+                        }
+                    }else{
+                        KegelHighlighted = ZielFelder[player][position];
+                        BView.highlightKegel(KegelHighlighted);
+                    }
+                    break;
+            }
+            moveDone();
+
+
+
+
     }
 
     public void moveKegel(Kegel k,int state, int position){
@@ -306,6 +343,19 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
         BView.resetHighlight();
         KegelHighlighted = null;
         moveDone();
+
+        isMyTurn = false;
+        if(isHost){
+            addCounter();
+        }else{
+            if(isMyTurn){
+                sendMessage("$moveCompleted");
+            }
+
+        }
+
+
+
     }
 
     public void kickKegel(Kegel k){
@@ -349,6 +399,8 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
     public void onConnected(@Nullable Bundle bundle) {
         if(isHost){
             startAdvertising();
+            myPosition = 0;
+            isMyTurn = true;
         }else{
             startDiscovery();
         }
@@ -384,6 +436,7 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
                             mRemoteHostEndpoint = endpointId;
 
 
+
                             //sendMessage("hi");
 
                             //mIsConnected = true;
@@ -405,10 +458,63 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
         String message=new String(bytes);
         Toast.makeText(this,message,Toast.LENGTH_SHORT).show();
 
+        Log.d("MessageReceived: ",message);
+
         if(message.contains("gamestart")){
             progressDialog.dismiss();
             stopDiscoveryAdvertising();
         }
+
+        if(!isHost){
+            if(message.contains("$deviceList")){
+                message = message.split("#")[1];
+
+                String[] list = message.split(",");
+
+                for(int i = 0; i < list.length; i++){
+                    userDeviceList.add(list[i]);
+                    if(list[i].equals(sharedPref.getString("username","user"))){
+                        myPosition = i;
+                    }
+
+                    Log.d("userDeviceList=",userDeviceList.toString());
+                    Log.d("myPosition=",String.valueOf(myPosition));
+
+                }
+            }if(message.contains("$click")){
+                message = message.split("#")[1];
+
+                String[] list = message.split(",");
+
+                OnFeldClickedMessage(Integer.parseInt(list[0]),Integer.parseInt(list[1]),Integer.parseInt(list[2]));
+
+            }if(message.contains("$isOnTurn")){
+                message = message.split("#")[1];
+
+                counter = Integer.parseInt(message);
+
+                if(counter == myPosition){
+                    isMyTurn = true;
+                }
+
+            }
+        }if(isHost){
+            /*if(message.contains("$moveCompleted")){
+                addCounter();
+            }*/
+            if(message.contains("$click")){
+                message = message.split("#")[1];
+
+                String[] list = message.split(",");
+
+                OnFeldClickedMessage(Integer.parseInt(list[0]),Integer.parseInt(list[1]),Integer.parseInt(list[2]));
+
+            }
+
+        }
+
+        Log.d("userDeviceList: ",userDeviceList.toString());
+
         Log.w("lolol","Message Received:"+message);
     }
 
@@ -448,9 +554,13 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
                         refreshList();
 
                         if (deviceListOld.size() == deviceList.size()) {
+
+
                             progressDialog.dismiss();
                             sendMessage("gamestart");
                             stopDiscoveryAdvertising();
+                            broadCastDeviceList();
+
                         }
                     } else {
                         Log.w("lolol", "Failed to connect to: " + remoteEndpointName);
@@ -467,6 +577,19 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
     // Discovery + Advertising
 
 
+    private void broadCastDeviceList(){
+        String listOut = "$deviceList#";
+
+        listOut += sharedPref.getString("username","user") + ",";
+
+        for(Device d : deviceListOld){
+            listOut += d.getEndpointName()+",";
+        }
+
+        sendMessage(listOut);
+
+        Log.d("listOutHost: ",listOut);
+    }
 
     private boolean isConnectedToNetwork() {
         ConnectivityManager connManager =
@@ -546,6 +669,22 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
             deviceListID.add(deviceList.get(i).getEndpointId());
         }
     }
+
+    private void addCounter(){
+        counter++;
+        counter = counter %(deviceListOld.size()+1);
+
+        if(counter == 0){
+            isMyTurn = true;
+        }
+
+        sendMessage("$isOnTurn#" + counter);
+
+        Log.d("isMyTurn:" , isMyTurn.toString());
+        Log.d("Counter:",String.valueOf(counter));
+
+    }
+
 
 
     private void connect(){
