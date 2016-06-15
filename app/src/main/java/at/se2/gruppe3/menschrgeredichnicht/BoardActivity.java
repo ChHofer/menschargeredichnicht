@@ -85,6 +85,7 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
     ProgressDialog progressDialog;
     String serviceId;
     int counter;
+    int rand;
 
     private ArrayList<String> userDeviceList = new ArrayList<String>();
 
@@ -151,12 +152,11 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
 
             @Override
             public void onShake(int count) {
-                Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-
-                startDiceAnimation();
-
-
-                v.vibrate(300);
+                if(isMyTurn){
+                    Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+                    startDiceAnimation();
+                    v.vibrate(300);
+                }
             }
         });
 
@@ -183,8 +183,12 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
     public int wurfelAction() {
 
         int zahl = rnd.nextInt(6) + 1;
-
         return zahl;
+    }
+
+    public int wurfelAction(int in){
+        return in;
+
     }
 
     public void setPicture(int rndZahl) {
@@ -223,9 +227,15 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
 
             @Override
             public void onAnimationEnd(Animation animation) {
-                int Zahl = wurfelAction();
+
+                int Zahl;
+                if(isMyTurn){
+                    Zahl = wurfelAction();
+                    sendMessage("$dice#" + Zahl);
+                }else Zahl = rand;
+
                 setPicture(Zahl);
-                sendMessage("hab "+ Zahl + " gewürfelt");
+
 
             }
 
@@ -471,6 +481,12 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
         if(message.contains("gamestart")){
             progressDialog.dismiss();
             stopDiscoveryAdvertising();
+        }if(message.contains("$dice")){
+            Toast.makeText(this,message.split("says")[0]+"hat gewürfelt",Toast.LENGTH_SHORT).show();
+            message = message.split("#")[1];
+            startDiceAnimation();
+            rand = Integer.parseInt(message);
+
         }
 
         if(!isHost){
