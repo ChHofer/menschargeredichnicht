@@ -5,6 +5,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.net.ConnectivityManager;
@@ -18,6 +19,7 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -73,6 +75,8 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
     private ArrayList<Device> deviceListOld = new ArrayList<Device>();
     private ArrayList<String> deviceListOldId = new ArrayList<String>();
 
+    TextView[] playerTextViews = new TextView[4];
+
     private String mRemoteHostEndpoint;
 
     GoogleApiClient mGoogleApiClient;
@@ -109,12 +113,19 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
 
         serviceId = getString(R.string.service_id);
 
+        playerTextViews[0] = (TextView) findViewById(R.id.player0);
+        playerTextViews[1] = (TextView) findViewById(R.id.player1);
+        playerTextViews[2] = (TextView) findViewById(R.id.player2);
+        playerTextViews[3] = (TextView) findViewById(R.id.player3);
+
         // Network
         connection = Connection.getInstance();
         deviceListOld = connection.getDeviceList();
+
         for(Device d : deviceListOld){
             deviceListOldId.add(d.getDeviceId());
         }
+
 
         Log.w("lolol","Size:"+ connection.getDeviceList().size());
         isHost = connection.isHost();
@@ -160,9 +171,6 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
         BView = (BoardView)findViewById(R.id.boardView);
         BView.setImageResource(R.drawable.board);
 
-        startGame();
-        moveDone();
-
         progressDialog = new ProgressDialog(this);
         progressDialog.setMessage("Warte auf Mitspieler...");
         progressDialog.show();
@@ -170,13 +178,11 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
         //DICE INITIALIZATION
 
         diceimage = (ImageView) findViewById(R.id.dice);
-
     }
 
     public int wurfelAction() {
 
         int zahl = rnd.nextInt(6) + 1;
-
 
         return zahl;
     }
@@ -230,9 +236,6 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
         });
 
         diceimage.startAnimation(startrotateAnimation);
-
-
-
     }
 
 
@@ -247,11 +250,16 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
     }
 
     public void startGame(){
-        for(int i=0;i<=3;i++){
+        int players;
+        if(isHost) players = deviceListOld.size()+1;
+        else players = userDeviceList.size();
+
+        for(int i=0;i<players;i++){
             for(int j=0;j<=3;j++){
                 StartFelder[i][j] = new Kegel(i,0,j);
             }
         }
+        setPlayerColor(0);
         Log.w("Logger","StartGame");
     }
 
@@ -347,12 +355,12 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
         isMyTurn = false;
         if(isHost){
             addCounter();
-        }else{
+        }/*else{
             if(isMyTurn){
                 sendMessage("$moveCompleted");
             }
 
-        }
+        }*/
 
 
 
@@ -473,6 +481,7 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
 
                 for(int i = 0; i < list.length; i++){
                     userDeviceList.add(list[i]);
+                    playerTextViews[i].setText(list[i]);
                     if(list[i].equals(sharedPref.getString("username","user"))){
                         myPosition = i;
                     }
@@ -480,6 +489,8 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
                     Log.d("userDeviceList=",userDeviceList.toString());
                     Log.d("myPosition=",String.valueOf(myPosition));
 
+                    startGame();
+                    moveDone();
                 }
             }if(message.contains("$click")){
                 message = message.split("#")[1];
@@ -493,6 +504,7 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
 
                 counter = Integer.parseInt(message);
 
+                setPlayerColor(counter);
                 if(counter == myPosition){
                     isMyTurn = true;
                 }
@@ -582,11 +594,17 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
 
         listOut += sharedPref.getString("username","user") + ",";
 
-        for(Device d : deviceListOld){
-            listOut += d.getEndpointName()+",";
+
+        playerTextViews[0].setText(sharedPref.getString("username","user"));
+        for(int i = 0;i<deviceListOld.size();i++){
+            playerTextViews[i+1].setText(deviceListOld.get(i).getEndpointName());
+            listOut += deviceListOld.get(i).getEndpointName()+",";
         }
 
         sendMessage(listOut);
+
+        startGame();
+        moveDone();
 
         Log.d("listOutHost: ",listOut);
     }
@@ -677,15 +695,22 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
         if(counter == 0){
             isMyTurn = true;
         }
+        setPlayerColor(counter);
 
         sendMessage("$isOnTurn#" + counter);
 
         Log.d("isMyTurn:" , isMyTurn.toString());
         Log.d("Counter:",String.valueOf(counter));
-
     }
 
+    private void setPlayerColor(int player){
 
+        for(int i=0;i<3;i++){
+            if(player==i) playerTextViews[i].setBackgroundColor(Color.parseColor("#8866FF7A"));
+            else playerTextViews[i].setBackgroundColor(Color.parseColor("#0066FF7A"));
+        }
+
+    }
 
     private void connect(){
         mGoogleApiClient.connect();
