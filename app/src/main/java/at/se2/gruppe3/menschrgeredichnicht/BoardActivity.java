@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.Timer;
+import java.util.concurrent.TimeUnit;
 
 public class BoardActivity extends Activity implements BoardView.OnFeldClickedListener,
         GoogleApiClient.ConnectionCallbacks,
@@ -61,6 +62,7 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
     Boolean isHost;
     private int myPosition;
     Boolean isMyTurn = false;
+    Boolean mayRollDice = false;
 
     SharedPreferences sharedPref;
 
@@ -86,6 +88,8 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
     String serviceId;
     int counter;
     int rand;
+    int Zahl;
+    boolean opponentDice;
 
     private ArrayList<String> userDeviceList = new ArrayList<String>();
 
@@ -152,10 +156,15 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
 
             @Override
             public void onShake(int count) {
-                if(isMyTurn){
+                if(isMyTurn && mayRollDice){
                     Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+
+                    Zahl = wurfelAction();
+                    sendMessage("$dice#" + Zahl);
+
                     startDiceAnimation();
                     v.vibrate(300);
+                    mayRollDice = false;
                 }
             }
         });
@@ -218,7 +227,7 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
     public void startDiceAnimation(){
 
         Animation startrotateAnimation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.rotate_anim);
-        startrotateAnimation.setDuration(3000);
+        startrotateAnimation.setDuration(1000);
         startrotateAnimation.setAnimationListener(new Animation.AnimationListener() {
             @Override
             public void onAnimationStart(Animation animation) {
@@ -228,13 +237,29 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
             @Override
             public void onAnimationEnd(Animation animation) {
 
-                int Zahl;
-                if(isMyTurn){
-                    Zahl = wurfelAction();
-                    sendMessage("$dice#" + Zahl);
-                }else Zahl = rand;
 
-                setPicture(Zahl);
+                if(opponentDice){
+                    setPicture(rand);
+                    opponentDice = false;
+                    return;
+                }
+
+
+                if(isMyTurn){
+                    setPicture(Zahl);
+                    if(Zahl != 6 && isStartFeldFull()){
+                        if(isHost){
+
+                            isMyTurn = false;
+                            addCounter();
+                        }else{
+                            isMyTurn = false;
+                            sendMessage("$noSixToGoOut");
+                        }
+                    }
+                }
+
+
 
 
             }
@@ -246,6 +271,13 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
         });
 
         diceimage.startAnimation(startrotateAnimation);
+    }
+
+    public boolean isStartFeldFull(){
+        for(int i = 0; i < StartFelder[myPosition].length; i++){
+            if(StartFelder[myPosition][i] == null) return false;
+        }
+        return true;
     }
 
 
@@ -289,7 +321,9 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
         if(KegelHighlighted==null){
 
             switch(state){
-                case 0: if(StartFelder[player][position]!=null) if(StartFelder[player][position].getPlayer()!=myPosition) return;
+                case 0:
+                    if (StartFelder[player][position] != null && StartFelder[player][position].getPlayer() != myPosition) return;
+                    if (Zahl != 6) return;
                     break;
                 case 1: if(HauptFelder[position]!=null) if(HauptFelder[position].getPlayer()!=myPosition) return;
                     break;
@@ -313,6 +347,8 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
                         BView.highlightKegel(KegelHighlighted);
                     }
                     break;
+
+
                 case 1:
                     if(KegelHighlighted!=null){
                         moveKegel(KegelHighlighted,state,position);
@@ -419,6 +455,7 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
             startAdvertising();
             myPosition = 0;
             isMyTurn = true;
+            mayRollDice = true;
         }else{
             startDiscovery();
         }
@@ -474,7 +511,7 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
     @Override
     public void onMessageReceived(String s, byte[] bytes, boolean b) {
         String message=new String(bytes);
-        Toast.makeText(this,message,Toast.LENGTH_SHORT).show();
+        //Toast.makeText(this,message,Toast.LENGTH_SHORT).show();
 
         Log.d("MessageReceived: ",message);
 
@@ -482,10 +519,20 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
             progressDialog.dismiss();
             stopDiscoveryAdvertising();
         }if(message.contains("$dice")){
-            Toast.makeText(this,message.split("says")[0]+"hat gewürfelt",Toast.LENGTH_SHORT).show();
-            message = message.split("#")[1];
-            startDiceAnimation();
-            rand = Integer.parseInt(message);
+
+            if(isHost){
+                sendMessage(message);
+            }
+
+            if(!message.contains(sharedPref.getString("username","user"))){
+                Toast.makeText(this,message.split("says")[0]+"hat gewürfelt",Toast.LENGTH_SHORT).show();
+                message = message.split("#")[1];
+                rand = Integer.parseInt(message);
+                opponentDice = true;
+                startDiceAnimation();
+            }
+
+
 
         }
 
@@ -509,11 +556,18 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
                     moveDone();
                 }
             }if(message.contains("$click")){
+
+
                 message = message.split("#")[1];
 
                 String[] list = message.split(",");
 
-                OnFeldClickedMessage(Integer.parseInt(list[0]),Integer.parseInt(list[1]),Integer.parseInt(list[2]));
+                if(Integer.parseInt(list[1]) != myPosition){
+                    OnFeldClickedMessage(Integer.parseInt(list[0]),Integer.parseInt(list[1]),Integer.parseInt(list[2]));
+                }
+
+
+
 
             }if(message.contains("$isOnTurn")){
                 message = message.split("#")[1];
@@ -522,7 +576,19 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
 
                 setPlayerColor(counter);
                 if(counter == myPosition){
+
+
+                    /*
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    */
+
+
                     isMyTurn = true;
+                    mayRollDice = true;
                 }
 
             }
@@ -531,12 +597,26 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
                 addCounter();
             }*/
             if(message.contains("$click")){
+
+                sendMessage(message);
+
                 message = message.split("#")[1];
 
                 String[] list = message.split(",");
 
                 OnFeldClickedMessage(Integer.parseInt(list[0]),Integer.parseInt(list[1]),Integer.parseInt(list[2]));
 
+            }if(message.contains("$noSixToGoOut")) {
+
+
+                try {
+                    Thread.sleep(1100);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+
+                addCounter();
             }
 
         }
@@ -705,11 +785,21 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
     }
 
     private void addCounter(){
+
+
+        try {
+            Thread.sleep(900);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+
         counter++;
         counter = counter %(deviceListOld.size()+1);
 
         if(counter == 0){
             isMyTurn = true;
+            mayRollDice = true;
         }
         setPlayerColor(counter);
 
