@@ -357,11 +357,13 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
             }
 
             if(KegelHighlighted.getState()==1){ // Wenn ausgewählter Kegel im Hauptbereich
-
-                int predicted=(KegelHighlighted.getPosition()+Zahl)%40;
-                //Log.w("lolol","Predicted="+predicted+" Position="+position+" Rand="+Zahl+" high="+KegelHighlighted.getPosition());
-                if(position < predicted || position>predicted+2) return;
-
+                if(state==1) {
+                    int predicted = (KegelHighlighted.getPosition() + Zahl) % 40;
+                    //Log.w("lolol","Predicted="+predicted+" Position="+position+" Rand="+Zahl+" high="+KegelHighlighted.getPosition());
+                    if (position < predicted || position > predicted + 2) return;
+                }else if(state == 0){
+                    return;
+                }
 
             }
 
