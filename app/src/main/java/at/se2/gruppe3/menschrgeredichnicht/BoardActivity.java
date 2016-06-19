@@ -15,6 +15,7 @@ import android.os.Vibrator;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
+import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
@@ -35,7 +36,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.Timer;
-import java.util.concurrent.TimeUnit;
 
 public class BoardActivity extends Activity implements BoardView.OnFeldClickedListener,
         GoogleApiClient.ConnectionCallbacks,
@@ -156,16 +156,7 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
 
             @Override
             public void onShake(int count) {
-                if(isMyTurn && mayRollDice){
-                    Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-
-                    Zahl = wurfelAction();
-                    sendMessage("$dice#" + Zahl);
-
-                    startDiceAnimation();
-                    v.vibrate(300);
-                    mayRollDice = false;
-                }
+                würfeln();
             }
         });
 
@@ -187,6 +178,28 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
         //DICE INITIALIZATION
 
         diceimage = (ImageView) findViewById(R.id.dice);
+        diceimage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                würfeln();
+            }
+        });
+    }
+
+    private void würfeln() {
+        if (isMyTurn && mayRollDice) {
+            Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+
+            Zahl = wurfelAction();
+
+            //Zahl = 6;  Zum testen
+
+            sendMessage("$dice#" + Zahl);
+
+            startDiceAnimation();
+            v.vibrate(300);
+            mayRollDice = false;
+        }
     }
 
     public int wurfelAction() {
@@ -280,9 +293,6 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
         return true;
     }
 
-
-
-
     @Override
     public void onResume() {
         super.onResume();
@@ -314,7 +324,7 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
     @Override
     public void OnFeldClicked(int state,int player,int position) {
 
-        if(!isMyTurn) {
+        if(!isMyTurn || mayRollDice==true) {
             return;
         }
 
@@ -332,7 +342,39 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
             }
         }
 
-        sendMessage("$click#" + state + "," + player + "," + position);
+        if(KegelHighlighted != null){ // Wenn Kegel ausgewählt
+            if(KegelHighlighted.getState()==0){ // Wenn ausgewählter Kegel im Startbereich
+                switch(KegelHighlighted.getPlayer()){
+                    case 0: if(state!=1 || position!=0) return;
+                        break;
+                    case 1: if(state!=1 || position!=10) return;
+                        break;
+                    case 2: if(state!=1 || position!=20) return;
+                        break;
+                    case 3: if(state!=1 || position!=30) return;
+                        break;
+                }
+            }
+
+            if(KegelHighlighted.getState()==1){ // Wenn ausgewählter Kegel im Hauptbereich
+
+                int predicted=(KegelHighlighted.getPosition()+Zahl)%40;
+                //Log.w("lolol","Predicted="+predicted+" Position="+position+" Rand="+Zahl+" high="+KegelHighlighted.getPosition());
+                if(position < predicted || position>predicted+2) return;
+
+
+            }
+
+            if(KegelHighlighted.getState()==2){ // Wenn ausgewählter Kegel im Zielbereich
+
+            }
+        }
+
+        /*if(state == 1 && KegelHighlighted != null){
+            //player = KegelHighlighted.getPosition();
+        }*/
+
+        sendMessage("$click#" + state + "," +  myPosition + "," + position);
 
         OnFeldClickedMessage(state,player,position);
     }
@@ -369,10 +411,6 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
                     break;
             }
             moveDone();
-
-
-
-
     }
 
     public void moveKegel(Kegel k,int state, int position){
@@ -565,9 +603,6 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
                 if(Integer.parseInt(list[1]) != myPosition){
                     OnFeldClickedMessage(Integer.parseInt(list[0]),Integer.parseInt(list[1]),Integer.parseInt(list[2]));
                 }
-
-
-
 
             }if(message.contains("$isOnTurn")){
                 message = message.split("#")[1];
