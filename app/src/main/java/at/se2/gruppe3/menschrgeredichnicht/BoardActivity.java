@@ -369,6 +369,8 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
             return;
         }
 
+        hasCheated = false;
+
         if(KegelHighlighted==null){
 
             switch(state){
@@ -690,6 +692,18 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
                 }
 
             }
+            if (message.contains("$kickKegel")) {
+                message = message.split("#")[1];
+                int pos = Integer.parseInt(message);
+
+                kickKegel(HauptFelder[pos]);
+                HauptFelder[pos] = null;
+                moveDone();
+                hasCheated = false;
+
+
+
+            }
         }if(isHost){
             /*if(message.contains("$moveCompleted")){
                 addCounter();
@@ -719,7 +733,8 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
                 hasCheated = true;
             }if(message.contains("$hasNotCheated")){
                 hasCheated = false;
-            }if(message.contains("$buttonhasCheated")){
+            }
+            if (message.contains("$buttonHasCheated")) {
                 checkCheatStatus();
             }
 
@@ -892,7 +907,7 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
 
 
         try {
-            Thread.sleep(900);
+            Thread.sleep(100);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -961,6 +976,10 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
 
             kickKegel(HauptFelder[lastPosition]);
             HauptFelder[lastPosition] = null;
+            moveDone();
+            hasCheated = false;
+
+            sendMessage("$kickKegel#" + lastPosition);
 
         }
 
