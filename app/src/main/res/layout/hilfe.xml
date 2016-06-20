@@ -1,43 +1,89 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    android:paddingLeft="16dp"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
-    android:orientation="vertical"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/scrollview"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content">
     tools:context="at.se2.gruppe3.menschrgeredichnicht.Hilfe">
-
-    <ScrollView
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/scrollView"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentEnd="true"
-        android:layout_below="@+id/textView">
+        android:orientation="vertical"
+        >
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/editText"
-            android:text="„Mensch ärgere dich nicht“ ist ein bekanntes Gesellschaftsspiel und bei Jung und Alt sehr beliebt. Mit maximal und mindestens 2 Spielern kann Mensch ärgere Dich nicht gespielt werden. Für „Mensch ärgere dich nicht“ gibt es ein eigenes Spielbrett. Jeder Spieler erhält 4 Figuren in einer Farbe. \n \n Ziel des Spiels\n Ziel des Spiels besteht darin, alle 4 Figuren als Erster ins Zielfeld zu bringen. \n \n Spielverlauf\n Wer die höchste Zahl würfelt beginnt.\n \n Jeder Spieler darf 3mal würfeln. Wer eine Sechs hat, darf die erste Figur auf das Startfeld stellen. Danach kann man noch ein Mal würfeln und um die gewürfelte Zahl vorrücken. Jene Spieler, die bei der ersten Runde keine Sechs haben müssen dann wieder 3mal würfeln, bis sie die erwünschte Zahl würfeln.\n \n Sobald man eine Figur auf der Startposition hat, gilt es diese so schnell wie möglich ins Ziel zu bringen. Wenn man wieder eine Sechs würfelt, muss man damit zuerst die restlichen Figuren aus der setzten. Erst wenn alle Figuren im Umlauf sind, kann man die Sechs auch ausfahren.\n \n Kommt man mit einer Figur auf ein Feld, auf dem bereits eine Figur steht, kann man diese schlagen und diese Spielfigur des Gegenspielers muss wieder auf die Anfangsposition außerhalb der Spielfelder auf denen man sich bewegen darf. Mit einer Sechs kann sie dann wieder ins Spiel gebracht werden. \n \n Steht auf einem Feld, auf das man vorrücken möchte, eine Eigene, muss man den Zug mit einer anderen Figur machen, denn man kann sich nicht selbst schlagen.\n \n Es müssen alle Spielfiguren in die Zielfelder gebracht werden, nachdem sie den vollen Kreis zurückgelegt werden. Dabei darf man die Figuren die schon im Ziel sind nicht überspringen, sondern jede muss einzeln nachrücken, damit alle Spielfiguren auf den Zielfeldern Platz finden.\n \n"
-            android:editable="true"
-            android:layout_below="@+id/textView"
-            android:layout_alignParentStart="true"
-            android:fontFamily="Times New Roman"
-            android:textAlignment="center" />
-    </ScrollView>
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="90dp"
+        android:id="@+id/imageView"
+        android:src="@drawable/spielanleitung" />
 
     <TextView
-        android:layout_width="wrap_content"
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="Spielanleitung"
-        android:id="@+id/textView"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true" />
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="@string/anleitung1"
+        android:id="@+id/textView2"
+        android:layout_below="@+id/imageView"
+        android:layout_alignParentEnd="true"
+        android:scrollHorizontally="false" />
 
-</RelativeLayout>
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="250dp"
+        android:id="@+id/imageView2"
+        android:layout_gravity="top|bottom|center_horizontal"
+        android:src="@drawable/hilfeboard"
+        android:layout_below="@+id/textView2"
+        android:layout_alignParentStart="true" />
+
+    <TextView
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:scrollHorizontally="false"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="@string/anleitung2"
+        android:id="@+id/textView3"
+        android:layout_below="@+id/imageView2"
+        android:layout_alignParentEnd="true" />
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="250dp"
+            android:id="@+id/imageView3"
+            android:layout_gravity="top|bottom|center_horizontal"
+            android:src="@drawable/hilfeboard2"
+            android:layout_below="@+id/textView2"
+            android:layout_alignParentStart="true" />
+
+
+        <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:scrollHorizontally="false"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="@string/anleitung3"
+            android:id="@+id/textView4"
+            android:layout_below="@+id/imageView2"
+            android:layout_alignParentEnd="true" />
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="250dp"
+            android:id="@+id/imageView4"
+            android:layout_gravity="top|bottom|center_horizontal"
+            android:src="@drawable/hilfeboard3"
+            android:layout_below="@+id/textView2"
+            android:layout_alignParentStart="true" />
+
+        <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:scrollHorizontally="false"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="@string/anleitung4"
+            android:id="@+id/textView8"
+            android:layout_below="@+id/imageView5"
+            android:layout_alignParentEnd="true" />
+
+
+
+    </LinearLayout>
+</ScrollView>
