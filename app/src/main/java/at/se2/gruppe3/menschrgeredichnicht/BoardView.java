@@ -269,6 +269,7 @@ public class BoardView extends ImageView{
                 int x = (int)event.getX();
                 int y = (int)event.getY();
 
+                boolean isFeld=false;
                 int margin = (int)(boardWidth*0.0416);
 
                 for(int i=0;i< boardCoordStart.length;i++){
@@ -276,6 +277,7 @@ public class BoardView extends ImageView{
                         if(x<=boardCoordStart[i][j].getX()+margin && x>=boardCoordStart[i][j].getX()-margin &&
                                 y<=boardCoordStart[i][j].getY()+margin && y>=boardCoordStart[i][j].getY()-margin){
                                 mListener.OnFeldClicked(0,i,j);
+                                isFeld=true;
                         }
                     }
                 }
@@ -283,6 +285,7 @@ public class BoardView extends ImageView{
                     if(x<=boardCoordHaupt[i].getX()+margin && x>=boardCoordHaupt[i].getX()-margin &&
                             y<=boardCoordHaupt[i].getY()+margin && y>=boardCoordHaupt[i].getY()-margin){
                             mListener.OnFeldClicked(1,0,i);
+                            isFeld=true;
                     }
                 }
                 for(int i=0;i< boardCoordZiel.length;i++){
@@ -290,9 +293,11 @@ public class BoardView extends ImageView{
                         if(x<=boardCoordZiel[i][j].getX()+margin && x>=boardCoordZiel[i][j].getX()-margin &&
                                 y<=boardCoordZiel[i][j].getY()+margin && y>=boardCoordZiel[i][j].getY()-margin) {
                             mListener.OnFeldClicked(2,i,j);
+                            isFeld=true;
                         }
                     }
                 }
+                if(!isFeld) mListener.NoFeldClicked();
                 break;
         }
         return true;
@@ -308,6 +313,7 @@ public class BoardView extends ImageView{
 
     public interface OnFeldClickedListener {
         public void OnFeldClicked(int state,int player,int position);
+        public void NoFeldClicked();
     }
 
     @Override

@@ -33,8 +33,6 @@ import com.google.android.gms.nearby.connection.AppIdentifier;
 import com.google.android.gms.nearby.connection.AppMetadata;
 import com.google.android.gms.nearby.connection.Connections;
 
-import org.w3c.dom.Text;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -392,9 +390,9 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
                         break;
                     case 1: if(state!=1 || position!=10) return;
                         break;
-                    case 2: if(state!=1 || position!=20) return;
+                    case 2: if(state!=1 || position!=30) return;
                         break;
-                    case 3: if(state!=1 || position!=30) return;
+                    case 3: if(state!=1 || position!=20) return;
                         break;
                 }
             }
@@ -435,6 +433,17 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
         sendMessage("$click#" + state + "," +  myPosition + "," + position);
 
         OnFeldClickedMessage(state,player,position);
+    }
+
+    @Override
+    public void NoFeldClicked() {
+
+        if(isHost){
+            KegelHighlighted = null;
+            BView.resetHighlight();
+            moveDone();
+        }
+        sendMessage("$noFeldClicked");
     }
 
 
@@ -617,6 +626,15 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
         //Toast.makeText(this,message,Toast.LENGTH_SHORT).show();
 
         Log.d("MessageReceived: ",message);
+
+        if(message.contains("$noFeldClicked")){
+            if(isHost){
+                sendMessage(message);
+            }
+            KegelHighlighted = null;
+            BView.resetHighlight();
+            moveDone();
+        }
 
         if(message.contains("gamestart")){
             progressDialog.dismiss();

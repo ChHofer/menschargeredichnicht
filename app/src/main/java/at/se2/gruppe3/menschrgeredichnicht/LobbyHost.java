@@ -87,8 +87,9 @@ public class LobbyHost extends AppCompatActivity implements
         startButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                startGame();
+                if(clientList.size()>0){
+                    startGame();
+                }
             }
         });
 
