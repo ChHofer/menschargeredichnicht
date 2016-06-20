@@ -18,6 +18,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -31,6 +32,8 @@ import com.google.android.gms.nearby.Nearby;
 import com.google.android.gms.nearby.connection.AppIdentifier;
 import com.google.android.gms.nearby.connection.AppMetadata;
 import com.google.android.gms.nearby.connection.Connections;
+
+import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -64,6 +67,8 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
     Boolean isMyTurn = false;
     Boolean mayRollDice = false;
 
+    Button cheatButton;
+
     SharedPreferences sharedPref;
 
     // The following are used for the shake detection
@@ -90,6 +95,8 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
     int rand;
     int Zahl;
     boolean opponentDice;
+    boolean hasCheated;
+    int lastPosition;
 
     private ArrayList<String> userDeviceList = new ArrayList<String>();
 
@@ -122,6 +129,19 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
         playerTextViews[1] = (TextView) findViewById(R.id.player1);
         playerTextViews[2] = (TextView) findViewById(R.id.player2);
         playerTextViews[3] = (TextView) findViewById(R.id.player3);
+
+        cheatButton = (Button) findViewById(R.id.cheatButton);
+
+        cheatButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(isHost){
+                    checkCheatStatus();
+                }else{
+                    sendMessage("$buttonHasCheated");
+                }
+            }
+        });
 
         // Network
         connection = Connection.getInstance();
@@ -257,10 +277,15 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
                     return;
                 }
 
+                /**
+                 * TODO
+                 * Wenn Kegel im Zielfeld sind, ist das Startfeld nicht mehr voll,
+                 * trotzdem muss automatisch zum nächsten Spieler gewechselt werden.
+                 */
 
                 if(isMyTurn){
                     setPicture(Zahl);
-                    if(Zahl != 6 && isStartFeldFull()){
+                    if(Zahl != 6 && isKegelAtHauptfeld() == false){
                         if(isHost){
 
                             isMyTurn = false;
@@ -292,6 +317,22 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
         }
         return true;
     }
+
+    public boolean isKegelAtHauptfeld(){
+        for(int i = 0; i < HauptFelder.length; i++){
+            if(HauptFelder[i] != null){
+                if(HauptFelder[i].getPlayer() == myPosition){
+                    return true;
+
+
+                }
+            }
+        }
+
+
+        return false;
+    }
+
 
     @Override
     public void onResume() {
@@ -361,6 +402,19 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
                     int predicted = (KegelHighlighted.getPosition() + Zahl) % 40;
                     //Log.w("lolol","Predicted="+predicted+" Position="+position+" Rand="+Zahl+" high="+KegelHighlighted.getPosition());
                     if (position < predicted || position > predicted + 2) return;
+                    if(position >predicted){
+                        if(isHost){
+                            hasCheated = true;
+                        }else{
+                            sendMessage("$hasCheated");
+                        }
+                    }else{
+                        if(isHost){
+                            hasCheated = false;
+                        }else{
+                            sendMessage("$hasNotCheated");
+                        }
+                    }
                 }else if(state == 0){
                     return;
                 }
@@ -383,6 +437,12 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
 
 
     public void OnFeldClickedMessage(int state,int player,int position) {
+        /**
+         * TODO
+         * Player 2 (1) kann nicht ins Zielfeld springen.
+         * Host funktioniert.
+         */
+
 
             switch(state){
                 case 0:
@@ -426,6 +486,7 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
                     kickKegel(HauptFelder[position]);
                 }
                 HauptFelder[position] = new Kegel(k.getPlayer(),state,position);
+                lastPosition = position;
                 break;
             case 2:
                 if(ZielFelder[k.getPlayer()][position] != null){
@@ -654,6 +715,12 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
 
 
                 addCounter();
+            }if(message.contains("$hasCheated")){
+                hasCheated = true;
+            }if(message.contains("$hasNotCheated")){
+                hasCheated = false;
+            }if(message.contains("$buttonhasCheated")){
+                checkCheatStatus();
             }
 
         }
@@ -880,6 +947,23 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
             disconnect();
         }
         super.onPause();
+    }
+
+
+    public void checkCheatStatus(){
+        if(hasCheated == true){
+            /**
+             * TODO
+             * cheatüberprüfung einfügen.
+             */
+
+        Log.d("LastPosition",String.valueOf(lastPosition));
+
+            kickKegel(HauptFelder[lastPosition]);
+            HauptFelder[lastPosition] = null;
+
+        }
+
     }
 
 }
