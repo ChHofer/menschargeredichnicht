@@ -210,7 +210,12 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
 
             Zahl = wurfelAction();
 
-            //Zahl = 6;  Zum testen
+            /**
+             * TODO
+             * Line unten entfernen!
+             */
+
+            Zahl = 6;  //Zum testen
 
             sendMessage("$dice#" + Zahl);
 
@@ -226,10 +231,12 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
         return zahl;
     }
 
-    public int wurfelAction(int in){
-        return in;
 
-    }
+    /**
+     * Setze die jew. Würfelzahl
+     *
+     * @param rndZahl
+     */
 
     public void setPicture(int rndZahl) {
 
@@ -255,6 +262,13 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
         }
     }
 
+    /**
+     * Starte die Wüfelanimation und hole dir die Info, ob selbst gewürfelt wurde, oder der Host
+     * die Message zum Wüfeln (=anderer Spieler hat gewürfelt) geschickt hat.
+     * Wenn ich selbst gewürfelt hab - hol dir die Random Zahl (=int Zahl)
+     * Wenn ein Mitspieler gewürfelt hat - hol dir die übergebene Zahl (=int rand)
+     */
+
     public void startDiceAnimation(){
 
         Animation startrotateAnimation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.rotate_anim);
@@ -277,8 +291,9 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
 
                 /**
                  * TODO
-                 * Wenn Kegel im Zielfeld sind, ist das Startfeld nicht mehr voll,
-                 * trotzdem muss automatisch zum nächsten Spieler gewechselt werden.
+                 * Wenn kein Spieler am Hauptfeld, jedoch im Zielfeld kann man noch vor fahren,
+                 * soll der Spieler bei der jew. Würfelzahl noch vorrücken können.
+                 * Status quo: Sobald keiner am Hauptfeld, ist automatisch der nächste an der Reihe.
                  */
 
                 if(isMyTurn){
@@ -331,6 +346,20 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
         return false;
     }
 
+    public int kegelAtHauptfeld() {
+        int out = 0;
+        for (int i = 0; i < HauptFelder.length; i++) {
+            if (HauptFelder[i] != null) {
+                if (HauptFelder[i].getPlayer() == myPosition) {
+                    out += 1;
+
+                }
+            }
+        }
+
+        return out;
+    }
+
 
     @Override
     public void onResume() {
@@ -359,6 +388,13 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
         BView.invalidate();
         //Log.w("Logger","MoveDone");
     }
+
+    /**
+     * Verarbeitet einen Klick auf ein Feld im Spielfeld
+     * @param state : Welches der 3 Felder? (StartFeld, HauptFeld, ZielFeld)
+     * @param player : Welcher Player (0,1,2,3) - Gilt nur für Start- und Zielfeld
+     * @param position : Welche Position im jew. Feld? (Start- u. Zielfeld 0-3, Hauptfeld 0-39)
+     */
 
     @Override
     public void OnFeldClicked(int state,int player,int position) {
@@ -402,6 +438,8 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
                     int predicted = (KegelHighlighted.getPosition() + Zahl) % 40;
                     //Log.w("lolol","Predicted="+predicted+" Position="+position+" Rand="+Zahl+" high="+KegelHighlighted.getPosition());
                     if (position < predicted || position > predicted + 2) return;
+                    if (havePossibleZielFeld()) return;
+
                     if(position >predicted){
                         if(isHost){
                             hasCheated = true;
@@ -415,10 +453,68 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
                             sendMessage("$hasNotCheated");
                         }
                     }
+
+
+
+
+                    /*
+                    if(player == 0){
+
+
+                        if(position < (39 - Zahl)){
+                            Toast.makeText(this,"Da kommst du nicht rein. Wähle einen anderen Kegel",Toast.LENGTH_SHORT).show();
+                            if(kegelAtHauptfeld() < 2){
+                                if(isHost){
+                                    isMyTurn = false;
+                                    addCounter();
+                                }else{
+                                    isMyTurn = false;
+                                    sendMessage("$noSixToGoOut");
+                                }
+                            }
+
+                            return;
+                        }
+                    }*/
+
                 }else if(state == 0){
                     return;
-                }
+                } else if (state == 2) {
+                    if (havePossibleZielFeld() == false) {
+                        return;
+                    } else {
+                        if (position != possiblePositionsInZielfeld()) {
+                            if (possiblePositionsInZielfeld() == -1) {
+                                if (kegelAtHauptfeld() < 2) {
+                                    if (isHost) {
+                                        isMyTurn = false;
+                                        addCounter();
+                                    } else {
+                                        isMyTurn = false;
+                                        sendMessage("$noSixToGoOut");
+                                    }
+                                }
+                            }
+                            return;
+                        }
+                        if (ZielFelder[player][position] != null && position == possiblePositionsInZielfeld()) {
+                            if (kegelAtHauptfeld() < 2) {
+                                if (isHost) {
+                                    isMyTurn = false;
+                                    addCounter();
+                                } else {
+                                    isMyTurn = false;
+                                    sendMessage("$noSixToGoOut");
+                                }
+                            }
+                        }
+                        if (ZielFelder[player][position] != null) {
+                            return;
+                        }
 
+
+                    }
+                }
             }
 
             if(KegelHighlighted.getState()==2){ // Wenn ausgewählter Kegel im Zielbereich
@@ -435,6 +531,10 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
         OnFeldClickedMessage(state,player,position);
     }
 
+    /**
+     * Es wird außerhalb des Spielfelds geklickt, KegelHighlighted wird abgewählt.
+     */
+
     @Override
     public void NoFeldClicked() {
 
@@ -446,13 +546,16 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
         sendMessage("$noFeldClicked");
     }
 
+    /**
+     * Fortsetzung von OnFeldClicked. Wird außerdem ausgeführt, wenn ein Befehl vom Host eintrifft (div.
+     * Überprüfungen finden hier nicht statt)
+     * @param state
+     * @param player
+     * @param position
+     */
 
     public void OnFeldClickedMessage(int state,int player,int position) {
-        /**
-         * TODO
-         * Player 2 (1) kann nicht ins Zielfeld springen.
-         * Host funktioniert.
-         */
+
 
 
             switch(state){
@@ -485,6 +588,13 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
             }
             moveDone();
     }
+
+    /**
+     * Verschieben eines Kegels auf eine andere Position
+     * @param k (Kegelobjekt, das verschoben wird)
+     * @param state (Wohin verschoben? Start/Haupt/Zielfeld 1,2,3)
+     * @param position (Auf welche Position im jew. Feld wird er verschoben?)
+     */
 
     public void moveKegel(Kegel k,int state, int position){
         removeKegel(k);
@@ -521,8 +631,12 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
         }*/
 
 
-
     }
+
+    /**
+     * Kopiere einen Kegel zurück in sein zugehöriges StartFeld.
+     * @param k (zu verschiebender Kegel)
+     */
 
     public void kickKegel(Kegel k){
         for(int i=0;i<StartFelder[k.getPlayer()].length;i++){
@@ -532,6 +646,11 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
             }
         }
     }
+
+    /**
+     * lösche den zuvor kopierten Kegel auf seinem jew. Feld
+     * @param k (zu löschender Kegel)
+     */
 
     public void removeKegel(Kegel k){
         switch(k.getState()) {
@@ -547,6 +666,11 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
         }
     }
 
+    /**
+     * Sende eine Message an den Host bzw. an die Clients
+     * @param message (message string)
+     */
+
     private void sendMessage( String message ) {
 
         if(isHost){
@@ -560,6 +684,11 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
                     ( sharedPref.getString("username","user") + " says: " + message ).getBytes() );
         }
     }
+
+    /**
+     * Wenn das Nearby Service gestartet ist, startAdvertising
+     * @param bundle
+     */
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
@@ -577,6 +706,14 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
     public void onConnectionSuspended(int i) {
 
     }
+
+    /**
+     * Wenn Host gefunden, verbinde zu ihm.
+     * @param endpointId
+     * @param deviceId
+     * @param serviceId
+     * @param endpointName
+     */
 
     @Override
     public void onEndpointFound(String endpointId, String deviceId,
@@ -620,6 +757,13 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
     public void onEndpointLost(String s) {
     }
 
+    /**
+     * Wenn eine Nachricht empfangen wurde.
+     * @param s
+     * @param bytes
+     * @param b
+     */
+
     @Override
     public void onMessageReceived(String s, byte[] bytes, boolean b) {
         String message=new String(bytes);
@@ -639,25 +783,25 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
         if(message.contains("gamestart")){
             progressDialog.dismiss();
             stopDiscoveryAdvertising();
-        }if(message.contains("$dice")){
-
-            if(isHost){
-                sendMessage(message);
-            }
-
-            if(!message.contains(sharedPref.getString("username","user"))){
-                Toast.makeText(this,message.split("says")[0]+"hat gewürfelt",Toast.LENGTH_SHORT).show();
-                message = message.split("#")[1];
-                rand = Integer.parseInt(message);
-                opponentDice = true;
-                startDiceAnimation();
-            }
-
-
-
         }
 
-        if(!isHost){
+        if(!isHost) {
+            if (message.contains("$dice")) {
+
+                if (!message.contains(sharedPref.getString("username", "user"))) {
+
+                    if (message.split("says").length == 3) {
+                        Toast.makeText(this, message.split(userDeviceList.get(0) + " says:")[1].split("says")[0] + "hat gewürfelt", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(this, message.split("says")[0] + "hat gewürfelt", Toast.LENGTH_SHORT).show();
+                    }
+
+                    message = message.split("#")[1];
+                    rand = Integer.parseInt(message);
+                    opponentDice = true;
+                    startDiceAnimation();
+                }
+            }
             if(message.contains("$deviceList")){
                 message = message.split("#")[1];
 
@@ -720,12 +864,30 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
                 hasCheated = false;
 
 
-
+            }
+            if (message.contains("$finish")) {
+                endGame(Integer.parseInt(message.split("#")[1]));
             }
         }if(isHost){
             /*if(message.contains("$moveCompleted")){
                 addCounter();
             }*/
+            if (message.contains("$dice")) {
+
+
+                sendMessage(message);
+
+
+                if (!message.contains(sharedPref.getString("username", "user"))) {
+
+                    Toast.makeText(this, message.split("says")[0] + "hat gewürfelt", Toast.LENGTH_SHORT).show();
+
+                    message = message.split("#")[1];
+                    rand = Integer.parseInt(message);
+                    opponentDice = true;
+                    startDiceAnimation();
+                }
+            }
             if(message.contains("$click")){
 
                 sendMessage(message);
@@ -772,6 +934,15 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 
     }
+
+    /**
+     * HOST: Wenn ein Client einen Connection Request schickt, checke die DeviceList aus der Lobby
+     * und verbinde mit dem Client, bzw. accepte die Verbindung.
+     * @param remoteEndpointId
+     * @param remoteDeviceId
+     * @param remoteEndpointName
+     * @param payload
+     */
 
     @Override
     public void onConnectionRequest(final String remoteEndpointId, final String remoteDeviceId,
@@ -821,6 +992,10 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
 
     // Discovery + Advertising
 
+    /**
+     * Sobald die komplette Liste aus der Lobby auch in der BoardActivity verbunden ist,
+     * sende die Liste aller Mitspieler aus.
+     */
 
     private void broadCastDeviceList(){
         String listOut = "$deviceList#";
@@ -921,8 +1096,26 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
         }
     }
 
-    private void addCounter(){
+    /**
+     * erhöhe den Counter für den Spielverlauf.
+     * Das Spiel beginnt immer der Host, dann Spieler 1, 2...
+     */
 
+    private void addCounter() {
+
+        for (int i = 0; i < 4; i++) {
+            int temp = 0;
+            for (int j = 0; j < 4; j++) {
+                if (StartFelder[i][j] != null) {
+                    temp++;
+                }
+
+            }
+            if (temp == 4) {
+                sendMessage("$finish#" + i);
+                endGame(i);
+            }
+        }
 
         try {
             Thread.sleep(100);
@@ -936,6 +1129,7 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
 
         if(counter == 0){
             isMyTurn = true;
+
             mayRollDice = true;
         }
         setPlayerColor(counter);
@@ -946,9 +1140,14 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
         Log.d("Counter:",String.valueOf(counter));
     }
 
-    private void setPlayerColor(int player){
+    /**
+     * Wenn Spieler an der Reihe, markiere seinen Namen am Spielfeld.
+     * @param player
+     */
 
-        for(int i=0;i<3;i++){
+    private void setPlayerColor(int player) {
+
+        for (int i = 0; i <=3;i++){
             if(player==i) playerTextViews[i].setBackgroundColor(Color.parseColor("#8866FF7A"));
             else playerTextViews[i].setBackgroundColor(Color.parseColor("#0066FF7A"));
         }
@@ -983,6 +1182,10 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
     }
 
 
+    /**
+     * Wenn hasCheated=true, schicke den Kegel des Cheaters wieder ins Startfeld.
+     */
+
     public void checkCheatStatus(){
         if(hasCheated == true){
             /**
@@ -1000,7 +1203,88 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
             sendMessage("$kickKegel#" + lastPosition);
 
         }
-
     }
 
+    public boolean havePossibleZielFeld() {
+        switch (KegelHighlighted.getPlayer()) {
+            case 0:
+                if (KegelHighlighted.getPosition() > 39 - Zahl - 2) {
+                    return true;
+                }
+                break;
+            case 1:
+                if (KegelHighlighted.getPosition() > 9 - Zahl - 2 && KegelHighlighted.getPosition() < 10) {
+                    return true;
+                }
+                break;
+            case 2:
+                if (KegelHighlighted.getPosition() > 29 - Zahl - 2 && KegelHighlighted.getPosition() < 20) {
+                    return true;
+                }
+                break;
+            case 3:
+                if (KegelHighlighted.getPosition() > 19 - Zahl - 2 && KegelHighlighted.getPosition() < 30) {
+                    return true;
+                }
+                break;
+
+
+        }
+
+        return false;
+    }
+
+    public int possiblePositionsInZielfeld() {
+        int out = 0;
+
+        int temp, min, max;
+
+        switch (KegelHighlighted.getPlayer()) {
+            case 0:
+                temp = 39 - KegelHighlighted.getPosition();
+                min = temp + 1;   //= Minimale Zahl, die gewürfelt werden muss, um rein zu kommen
+                max = temp + 4;   //= Maximale Zahl, die gewürfelt werden darf, um rein zu fahren
+                if (Zahl >= min && Zahl <= max) {
+                    out = Zahl - temp - 1;
+                } else out = -1;
+                break;
+            case 1:
+                temp = 9 - KegelHighlighted.getPosition();
+                min = temp + 1;   //= Minimale Zahl, die gewürfelt werden muss, um rein zu kommen
+                max = temp + 4;   //= Maximale Zahl, die gewürfelt werden darf, um rein zu fahren
+                if (Zahl >= min && Zahl <= max) {
+                    out = Zahl - temp - 1;
+                } else out = -1;
+                break;
+            case 2:
+                temp = 29 - KegelHighlighted.getPosition();
+                min = temp + 1;   //= Minimale Zahl, die gewürfelt werden muss, um rein zu kommen
+                max = temp + 4;   //= Maximale Zahl, die gewürfelt werden darf, um rein zu fahren
+                if (Zahl >= min && Zahl <= max) {
+                    out = Zahl - temp - 1;
+                } else out = -1;
+                break;
+            case 3:
+                temp = 19 - KegelHighlighted.getPosition();
+                min = temp + 1;   //= Minimale Zahl, die gewürfelt werden muss, um rein zu kommen
+                max = temp + 4;   //= Maximale Zahl, die gewürfelt werden darf, um rein zu fahren
+                if (Zahl >= min && Zahl <= max) {
+                    out = Zahl - temp - 1;
+                } else out = -1;
+                break;
+
+        }
+
+
+        return out;
+    }
+
+    public void endGame(int playerWon) {
+
+        /**
+         * TODO
+         * FINISH GAME ALERT
+         */
+
+    }
 }
