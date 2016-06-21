@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.InputType;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -26,7 +27,7 @@ public class MenuActivity extends Activity implements View.OnClickListener{
      */
     private GoogleApiClient client;
 
-    Button btnNewGame, btnJoinGame, btnHelp;
+    Button btnNewGame, btnJoinGame, btnHelp, btnSettings;
     Spieler spieler;
     String textname;
     Intent Lobby;
@@ -43,6 +44,7 @@ public class MenuActivity extends Activity implements View.OnClickListener{
 
         sharedPref = context.getSharedPreferences(
                 getString(R.string.preference_file_key), Context.MODE_PRIVATE);
+        Log.w("lolol","sharedPref name:"+sharedPref.getString("username",""));
         if(sharedPref.getString("username","").compareTo("")==0){
             askForName();
         }
@@ -72,9 +74,16 @@ public class MenuActivity extends Activity implements View.OnClickListener{
                 startActivity(Lobby);
                 break;
             case R.id.btnHelp:
+                Log.w("lolol","Help Clicked!!!");
                 Intent newHilfeScreen = new Intent(getApplicationContext(),
                         Hilfe.class);
                 startActivity(newHilfeScreen);
+                break;
+            case R.id.btnSettings:
+                Log.w("lolol","Settings Clicked!!!");
+                Intent newSettingsScreen = new Intent(getApplicationContext(),
+                        Settings.class);
+                startActivity(newSettingsScreen);
                 break;
         }
     }
@@ -116,6 +125,8 @@ public class MenuActivity extends Activity implements View.OnClickListener{
         btnJoinGame.setOnClickListener(this);
         btnHelp = (Button) findViewById(R.id.btnHelp);
         btnHelp.setOnClickListener(this);
+        btnSettings = (Button) findViewById(R.id.btnSettings);
+        btnSettings.setOnClickListener(this);
 
     }
 

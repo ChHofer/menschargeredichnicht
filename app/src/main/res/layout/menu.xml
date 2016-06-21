@@ -61,6 +61,24 @@
         android:textSize="20dp"
         android:textStyle="bold" />
 
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:text="Einstellungen"
+        android:id="@+id/btnSettings"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginLeft="0dp"
+        android:layout_below="@+id/btnHelp"
+        style="@android:style/Widget.DeviceDefault.Button"
+        android:layout_alignEnd="@+id/btnHelp"
+        android:layout_marginTop="10dp"
+        android:layout_alignStart="@+id/textTitle"
+        android:backgroundTint="#8d0088"
+        android:background="#8d0088"
+        android:textColor="#fcc71e"
+        android:textSize="20dp"
+        android:textStyle="bold" />
+
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="60dp"
