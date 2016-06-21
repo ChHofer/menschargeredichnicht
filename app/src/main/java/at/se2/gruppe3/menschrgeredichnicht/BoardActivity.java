@@ -1,8 +1,10 @@
 package at.se2.gruppe3.menschrgeredichnicht;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
@@ -1001,12 +1003,14 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
         String listOut = "$deviceList#";
 
         listOut += sharedPref.getString("username","user") + ",";
-
+        userDeviceList.add(sharedPref.getString("username","user"));
 
         playerTextViews[0].setText(sharedPref.getString("username","user"));
         for(int i = 0;i<deviceListOld.size();i++){
             playerTextViews[i+1].setText(deviceListOld.get(i).getEndpointName());
             listOut += deviceListOld.get(i).getEndpointName()+",";
+
+            userDeviceList.add(deviceListOld.get(i).getEndpointName());
         }
 
         sendMessage(listOut);
@@ -1159,12 +1163,12 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
     }
 
     private void disconnect(){
-        deviceList.clear();
-        refreshList();
+        //deviceList.clear();
+        //refreshList();
         Log.w("lolol","disconnect");
         stopDiscoveryAdvertising();
         Nearby.Connections.stopAllEndpoints(mGoogleApiClient);
-        mGoogleApiClient.disconnect();
+        //mGoogleApiClient.disconnect();
     }
 
     public void stopDiscoveryAdvertising(){
@@ -1279,12 +1283,34 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
         return out;
     }
 
-    public void endGame(int playerWon) {
+    public void endGame(int playerWon){
+        AlertDialog.Builder builder = new AlertDialog.Builder(BoardActivity.this);
+        builder.setMessage("Der Spieler \""+userDeviceList.get(playerWon)+"\" hat das Spiel gewonnen!")
+                .setTitle(userDeviceList.get(playerWon)+" siegt!");
+        builder.setPositiveButton("Ok",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog,int which) {
+                        dialog.cancel();
+                        cancel();
+                    }
+                });
+        builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialog) {
+                dialog.cancel();
+                cancel();
+            }
+        });
+        builder.show();
+    }
 
-        /**
-         * TODO
-         * FINISH GAME ALERT
-         */
-
+    public void cancel(){
+        mSensorManager.unregisterListener(mShakeDetector);
+        if (mGoogleApiClient != null && mGoogleApiClient.isConnected()) {
+            disconnect();
+        }
+        Intent newGameScreen = new Intent(getApplicationContext(),
+                MenuActivity.class);
+        startActivity(newGameScreen);
     }
 }
