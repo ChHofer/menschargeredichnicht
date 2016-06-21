@@ -4,12 +4,18 @@ android {
     compileSdkVersion 23
     buildToolsVersion "23.0.2"
 
+    configurations {
+        javadocDeps
+    }
+
+
     defaultConfig {
         applicationId "at.se2.gruppe3.menschrgeredichnicht"
         minSdkVersion 17
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
         release {
@@ -41,26 +47,50 @@ android {
         // I prefer avoiding a build fail if there is any warning, for they are only warnings
         abortOnError false
     }
+    testOptions {
+        unitTests.returnDefaultValues = true
+    }
+    packagingOptions {
+        exclude 'LICENSE.txt'
+    }
 }
 
 
-dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
-    testCompile 'junit:junit:4.12'
-    compile 'com.android.support:appcompat-v7:23.2.1'
-    compile 'com.android.support:design:23.2.1'
-    compile 'com.google.android.gms:play-services-appindexing:8.4.0'
-    compile 'com.google.android.gms:play-services-base:8.4.0'
-    compile 'com.google.android.gms:play-services-nearby:8.4.0'
-}
+
 
 task javadoc(type: Javadoc) {
+    classpath += configurations.javadocDeps
     source = android.sourceSets.main.java.srcDirs
     classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
     destinationDir = file("../javadoc/")
     failOnError false
 }
 
+
+
+
+
+dependencies {
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+
+    compile 'com.android.support:design:23.3.0'
+    compile 'com.google.android.gms:play-services-appindexing:8.4.0'
+    compile 'com.google.android.gms:play-services-base:8.4.0'
+    compile 'com.google.android.gms:play-services-nearby:8.4.0'
+
+    compile 'com.android.support:support-annotations:23.2.0'
+    javadocDeps 'com.android.support:support-annotations:23.2.0'
+    androidTestCompile 'junit:junit:4.+'
+    androidTestCompile 'com.jayway.android.robotium:robotium-solo:+'
+
+    testCompile 'junit:junit:4.12'
+    testCompile 'org.mockito:mockito-core:1.10.9'
+    androidTestCompile 'com.android.support:support-annotations:23.3.0'
+    androidTestCompile 'com.android.support.test:runner:0.4.1'
+    androidTestCompile 'com.android.support.test:rules:0.4.1'
+    androidTestCompile 'com.android.support.test.espresso:espresso-core:2.2.1'
+
+}
 
 apply plugin: 'jacoco'
 jacoco {
