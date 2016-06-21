@@ -455,35 +455,35 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
          */
 
 
-            switch(state){
-                case 0:
-                    if(StartFelder[player][position]!=null){
-                        KegelHighlighted = StartFelder[player][position];
-                        BView.highlightKegel(KegelHighlighted);
-                    }
-                    break;
+        switch(state){
+            case 0:
+                if(StartFelder[player][position]!=null){
+                    KegelHighlighted = StartFelder[player][position];
+                    BView.highlightKegel(KegelHighlighted);
+                }
+                break;
 
 
-                case 1:
-                    if(KegelHighlighted!=null){
-                        moveKegel(KegelHighlighted,state,position);
-                    }else{
-                        KegelHighlighted = HauptFelder[position];
-                        BView.highlightKegel(KegelHighlighted);
+            case 1:
+                if(KegelHighlighted!=null){
+                    moveKegel(KegelHighlighted,state,position);
+                }else{
+                    KegelHighlighted = HauptFelder[position];
+                    BView.highlightKegel(KegelHighlighted);
+                }
+                break;
+            case 2:
+                if(KegelHighlighted!=null){
+                    if(KegelHighlighted.getPlayer() == player) {
+                        moveKegel(KegelHighlighted, state, position);
                     }
-                    break;
-                case 2:
-                    if(KegelHighlighted!=null){
-                        if(KegelHighlighted.getPlayer() == player) {
-                            moveKegel(KegelHighlighted, state, position);
-                        }
-                    }else{
-                        KegelHighlighted = ZielFelder[player][position];
-                        BView.highlightKegel(KegelHighlighted);
-                    }
-                    break;
-            }
-            moveDone();
+                }else{
+                    KegelHighlighted = ZielFelder[player][position];
+                    BView.highlightKegel(KegelHighlighted);
+                }
+                break;
+        }
+        moveDone();
     }
 
     public void moveKegel(Kegel k,int state, int position){
@@ -517,7 +517,6 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
             if(isMyTurn){
                 sendMessage("$moveCompleted");
             }
-
         }*/
 
 
@@ -553,7 +552,7 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
             Nearby.Connections.sendReliableMessage( mGoogleApiClient,
                     deviceListID,
                     ( sharedPref.getString("username","user") + " says: " + message ).getBytes() );
-                    //( Nearby.Connections.getLocalDeviceId( mGoogleApiClient ) + " says: " + message ).getBytes() );
+            //( Nearby.Connections.getLocalDeviceId( mGoogleApiClient ) + " says: " + message ).getBytes() );
         }else{
             Nearby.Connections.sendReliableMessage( mGoogleApiClient,
                     mRemoteHostEndpoint,
@@ -990,7 +989,7 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
              * cheatüberprüfung einfügen.
              */
 
-        Log.d("LastPosition",String.valueOf(lastPosition));
+            Log.d("LastPosition",String.valueOf(lastPosition));
 
             kickKegel(HauptFelder[lastPosition]);
             HauptFelder[lastPosition] = null;

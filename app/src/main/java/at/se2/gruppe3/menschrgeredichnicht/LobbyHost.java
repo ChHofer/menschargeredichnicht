@@ -178,21 +178,21 @@ public class LobbyHost extends AppCompatActivity implements
             Nearby.Connections.rejectConnectionRequest(mGoogleApiClient,remoteEndpointId);
         }
 
-            byte[] myPayload = null;
-            // Automatically accept all requests
-            Nearby.Connections.acceptConnectionRequest(mGoogleApiClient, remoteEndpointId,
-                    myPayload, this).setResultCallback(new ResultCallback<Status>() {
-                @Override
-                public void onResult(Status status) {
-                    if (status.isSuccess()) {
-                        append("Connected to:" + remoteEndpointName);
-                        clientList.add(new Device(remoteEndpointId,remoteDeviceId,remoteEndpointName));
-                        refreshList();
-                    } else {
-                        append("Failed to connect to: " + remoteDeviceId);
-                    }
+        byte[] myPayload = null;
+        // Automatically accept all requests
+        Nearby.Connections.acceptConnectionRequest(mGoogleApiClient, remoteEndpointId,
+                myPayload, this).setResultCallback(new ResultCallback<Status>() {
+            @Override
+            public void onResult(Status status) {
+                if (status.isSuccess()) {
+                    append("Connected to:" + remoteEndpointName);
+                    clientList.add(new Device(remoteEndpointId,remoteDeviceId,remoteEndpointName));
+                    refreshList();
+                } else {
+                    append("Failed to connect to: " + remoteDeviceId);
                 }
-            });
+            }
+        });
     }
 
 

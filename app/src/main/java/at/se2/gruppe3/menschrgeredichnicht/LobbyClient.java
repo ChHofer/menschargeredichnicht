@@ -120,9 +120,9 @@ public class LobbyClient extends AppCompatActivity implements
     }
 
     private void sendMessage( String message ) {
-            Nearby.Connections.sendReliableMessage( mGoogleApiClient,
-                    mRemoteHostEndpoint,
-                    ( sharedPref.getString("username","User") + " says: " + message ).getBytes() );
+        Nearby.Connections.sendReliableMessage( mGoogleApiClient,
+                mRemoteHostEndpoint,
+                ( sharedPref.getString("username","User") + " says: " + message ).getBytes() );
     }
 
     @Override
