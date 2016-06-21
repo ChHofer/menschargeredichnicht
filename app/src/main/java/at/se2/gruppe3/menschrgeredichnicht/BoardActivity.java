@@ -97,6 +97,7 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
     boolean opponentDice;
     boolean hasCheated;
     int lastPosition;
+    int cheatCounter0, cheatCounter1, cheatCounter2, cheatCounter3;
 
     private ArrayList<String> userDeviceList = new ArrayList<String>();
 
@@ -130,13 +131,18 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
         playerTextViews[2] = (TextView) findViewById(R.id.player2);
         playerTextViews[3] = (TextView) findViewById(R.id.player3);
 
+        cheatCounter0 = 0;
+        cheatCounter1 = 0;
+        cheatCounter2 = 0;
+        cheatCounter3 = 0;
+
         cheatButton = (Button) findViewById(R.id.cheatButton);
 
         cheatButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if(isHost){
-                    checkCheatStatus();
+                    checkCheatCount(userDeviceList.get(0));
                 }else{
                     sendMessage("$buttonHasCheated");
                 }
@@ -788,6 +794,11 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
         }
 
         if(!isHost) {
+            if (message.contains("aussetzen")) {
+                message = message.split("says: ")[1];
+                Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+            }
+
             if (message.contains("$dice")) {
 
                 if (!message.contains(sharedPref.getString("username", "user"))) {
@@ -904,7 +915,7 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
 
 
                 try {
-                    Thread.sleep(1100);
+                    Thread.sleep(100);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -915,11 +926,20 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
                 hasCheated = true;
             }if(message.contains("$hasNotCheated")){
                 hasCheated = false;
+
+                /**
+                 * TODO
+                 * Wenn 3x falsch cheat gedrückt, dann muss er 3 Runden aussetzen vom Cheat drücken.
+                 */
+
             }
             if (message.contains("$buttonHasCheated")) {
-                checkCheatStatus();
-            }
 
+                String name = message.split(" says")[0];
+
+                checkCheatCount(name);
+
+            }
         }
 
         Log.d("userDeviceList: ",userDeviceList.toString());
@@ -1110,7 +1130,7 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
         for (int i = 0; i < 4; i++) {
             int temp = 0;
             for (int j = 0; j < 4; j++) {
-                if (StartFelder[i][j] != null) {
+                if (ZielFelder[i][j] != null) {
                     temp++;
                 }
 
@@ -1119,6 +1139,19 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
                 sendMessage("$finish#" + i);
                 endGame(i);
             }
+        }
+
+        if (cheatCounter0 < 0) {
+            cheatCounter0++;
+        }
+        if (cheatCounter1 < 0) {
+            cheatCounter1++;
+        }
+        if (cheatCounter2 < 0) {
+            cheatCounter2++;
+        }
+        if (cheatCounter3 < 0) {
+            cheatCounter3++;
         }
 
         try {
@@ -1190,14 +1223,14 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
      * Wenn hasCheated=true, schicke den Kegel des Cheaters wieder ins Startfeld.
      */
 
-    public void checkCheatStatus(){
+    public boolean checkCheatStatus() {
         if(hasCheated == true){
             /**
              * TODO
              * cheatüberprüfung einfügen.
              */
 
-        Log.d("LastPosition",String.valueOf(lastPosition));
+            Log.d("LastPosition", String.valueOf(lastPosition));
 
             kickKegel(HauptFelder[lastPosition]);
             HauptFelder[lastPosition] = null;
@@ -1206,7 +1239,88 @@ public class BoardActivity extends Activity implements BoardView.OnFeldClickedLi
 
             sendMessage("$kickKegel#" + lastPosition);
 
+            return true;
+
         }
+
+        return false;
+    }
+
+    /**
+     * Checkt, ob ein Spieler schon zu oft falsch den CHEAT Button betätigt hat.
+     * Wenn er bei 3 falschen Betätigungen angelangt ist, wird er für die nächsten 3 Runden gesperrt.
+     *
+     * @param name - Name des Spielers.
+     */
+
+    public void checkCheatCount(String name) {
+
+        for (int i = 0; i < userDeviceList.size(); i++) {
+            if (userDeviceList.get(i).equals(name)) {
+                if (i == 0) {
+                    if (cheatCounter0 >= 0) {
+                        if (checkCheatStatus() == false) {
+                            if (cheatCounter0 == 2) {
+                                cheatCounter0 = -3;
+                                Toast.makeText(this, "Du hast 3 Mal falsch CHEAT gedrückt und musst 3 Runden Cheat aussetzen", Toast.LENGTH_LONG).show();
+                                sendMessage(userDeviceList.get(0) + " hat 3 Mal falsch CHEAT gedrückt und muss 3 Runden Cheat aussetzen");
+                            } else cheatCounter0++;
+
+                        }
+                    }
+
+                    Log.d("CheatCounter0 =", " " + cheatCounter0);
+
+                }
+                if (i == 1) {
+                    if (cheatCounter1 >= 0) {
+                        if (checkCheatStatus() == false) {
+                            if (cheatCounter1 == 2) {
+                                cheatCounter1 = -3;
+                                Toast.makeText(this, userDeviceList.get(1) + "Du has 3 Mal falsch CHEAT gedrückt und muss 3 Runden Cheat aussetzen", Toast.LENGTH_LONG).show();
+                                sendMessage(userDeviceList.get(1) + " hat 3 Mal falsch CHEAT gedrückt und muss 3 Runden Cheat aussetzen");
+                            } else cheatCounter1++;
+
+                        }
+                    }
+
+                    Log.d("CheatCounter1 =", " " + cheatCounter1);
+
+                }
+                if (i == 2) {
+                    if (cheatCounter2 >= 0) {
+                        if (checkCheatStatus() == false) {
+                            if (cheatCounter2 == 2) {
+                                cheatCounter2 = -3;
+                                Toast.makeText(this, userDeviceList.get(2) + "Du has 3 Mal falsch CHEAT gedrückt und muss 3 Runden Cheat aussetzen", Toast.LENGTH_LONG).show();
+                                sendMessage(userDeviceList.get(2) + " hat 3 Mal falsch CHEAT gedrückt und muss 3 Runden Cheat aussetzen");
+                            } else cheatCounter2++;
+
+                        }
+                    }
+
+                    Log.d("CheatCounter2 =", " " + cheatCounter2);
+
+                }
+                if (i == 3) {
+                    if (cheatCounter3 >= 0) {
+                        if (checkCheatStatus() == false) {
+                            if (cheatCounter3 == 2) {
+                                cheatCounter3 = -3;
+                                Toast.makeText(this, userDeviceList.get(1) + "Du has 3 Mal falsch CHEAT gedrückt und muss 3 Runden Cheat aussetzen", Toast.LENGTH_LONG).show();
+                                sendMessage(userDeviceList.get(3) + " hat 3 Mal falsch CHEAT gedrückt und muss 3 Runden Cheat aussetzen");
+                            } else cheatCounter3++;
+
+                        }
+                    }
+
+                    Log.d("CheatCounter3 =", " " + cheatCounter3);
+
+                }
+            }
+        }
+
+
     }
 
     public boolean havePossibleZielFeld() {
